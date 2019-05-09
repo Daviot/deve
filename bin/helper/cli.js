@@ -8,5 +8,5 @@ var CLI = (function () {
     };
     return CLI;
 }());
-exports["default"] = CLI;
+exports.CLI = CLI;
 //# sourceMappingURL=cli.js.map

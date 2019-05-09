@@ -1,0 +1,11 @@
+{
+    "page": "index.html",
+    "head": {
+        "title": "Title Index",
+        "description": "Description Index"
+    },
+    "body": "INDEX<br>{{head.title}}",
+    "components": {
+        "button": "button.hbs"
+    }
+}
