@@ -1,7 +1,7 @@
 {
     "source": "[path of the current source page]",
     "destination": "[path of the generated page]",
-    "page": "default.hbs",
+    "page": "theme/default.hbs",
     "language": "en",
     "head": {
         "title": "Title",

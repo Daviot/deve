@@ -2,16 +2,16 @@ import * as fs from 'fs-jetpack';
 export class Path {
     dir(path: string): string {
         const exists = fs.exists(path);
-        switch(exists) {
+        switch (exists) {
             case 'file':
-            let split = path.split('/');
-            split.pop();
-            return fs.path(split.join('/'));
+                let split = path.split('/');
+                split.pop();
+                return fs.path(split.join('/'));
             case 'dir':
-            return fs.path(path);
+                return fs.path(path);
             default:
-            console.error(`path does not exist "${path}"`);
-            return '';
+                console.error(`path does not exist "${path}"`);
+                return '';
         }
     }
 
@@ -23,7 +23,7 @@ export class Path {
         // change file folder to public
         const path = fs.path(`public/${slug}`);
 
-        if(fs.exists(path) == 'dir') {
+        if (path.split('/').pop().indexOf('.') < 0) {
             // append index.html to the slug
             const filePath = fs.path(path, 'index.html');
             return filePath;

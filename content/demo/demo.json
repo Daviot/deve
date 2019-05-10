@@ -1,0 +1,10 @@
+{
+    "head": {
+        "title": "Title Demo",
+        "description": "Description Index"
+    },
+    "body": "DEMO<br>{{head.title}} {{>button}}",
+    "components": {
+        "button": "button.hbs"
+    }
+}
