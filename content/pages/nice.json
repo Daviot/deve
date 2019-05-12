@@ -1,0 +1,10 @@
+{
+    "head": {
+        "title": "Title Pages Nice",
+        "description": "Description Index"
+    },
+    "body": "Pages Nice<br>{{head.title}} {{>button}}",
+    "components": {
+        "button": "button.hbs"
+    }
+}
