@@ -7,7 +7,7 @@ export class Builder {
     template: string = '';
     path: Path;
     defaultTemplate = 'theme/default.hbs';
-    constructor(private templateEngine: any, private fs: FSJetpack, private components:any, fileData: any, options: any = null) {
+    constructor(private templateEngine: any, private fs: FSJetpack, private partials:any, fileData: any, options: any = null) {
         this.data = fileData;
         if (options != null) {
             this.data = Object.assign(options, fileData);
@@ -39,15 +39,15 @@ export class Builder {
     generate() {
         const templateSource = this.loadTemplate();
 
-        if(this.data.components) {
+        if(this.data.partials) {
 
-            const componentKeys = Object.keys(this.data.components);
+            const partialsKeys = Object.keys(this.data.partials);
 
-            componentKeys.map((key)=> {
+            partialsKeys.map((key)=> {
                 // console.log(key)
                 // console.log(this.components[this.data.components[key]])
                 // console.log('')
-                Handlebars.registerPartial(key, this.components[this.data.components[key]]);
+                Handlebars.registerPartial(key, this.partials[this.data.partials[key]]);
             });
         }
 

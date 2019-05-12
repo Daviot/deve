@@ -14,8 +14,8 @@ export class Partials {
         });
     }
 
-    get(component: string) {
-        return this.store[component];
+    get(partial: string) {
+        return this.store[partial];
     }
 
     all() {

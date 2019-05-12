@@ -42,9 +42,9 @@ glob('content/**/*.json')
 
 
         //console.log(files);
-        // load the components for the generator to use
-        const components = new Partials(fs);
-        components.load();
+        // load the partials for the generator to use
+        const partials = new Partials(fs);
+        partials.load();
 
         // remove system files
         const pureFiles = files.filter((filePath: string) => filePath != 'content/config.json');
@@ -66,7 +66,7 @@ glob('content/**/*.json')
             //fileData = components.replace(fileData);
             //console.log(fileData.destination);
             //console.log(fs.cwd());
-            const builder = new Builder(templateEngine, fs, components.all(), fileData, config);
+            const builder = new Builder(templateEngine, fs, partials.all(), fileData, config);
             const generated = builder.generate();
             console.log(' ')
             console.log(fileData)
