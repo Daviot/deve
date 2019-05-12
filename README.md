@@ -8,8 +8,8 @@ Contains the content of the page.
 ### theme
 Contains the templates of the page.
 
-### components
-Contains all reuseable elements.
+### partials
+Contains all reuseable elements with logic.
 
 ### admin
 Contains the deve admin interface.
