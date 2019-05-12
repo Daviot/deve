@@ -1,3 +1,4 @@
+import { Snippets } from './snippets';
 import { FSJetpack } from 'fs-jetpack/types';
 import { Path } from './path';
 import * as Handlebars from 'handlebars';
@@ -7,7 +8,7 @@ export class Builder {
     template: string = '';
     path: Path;
     defaultTemplate = 'theme/default.hbs';
-    constructor(private templateEngine: any, private fs: FSJetpack, private partials:any, fileData: any, options: any = null) {
+    constructor(private templateEngine: any, private fs: FSJetpack, private partials:any, private snippets: Snippets, fileData: any, options: any = null) {
         this.data = fileData;
         if (options != null) {
             this.data = Object.assign(options, fileData);
@@ -37,23 +38,31 @@ export class Builder {
     }
 
     generate() {
-        const templateSource = this.loadTemplate();
+        // load the page template
+        let source = this.loadTemplate();
 
+        // register partials
         if(this.data.partials) {
-
             const partialsKeys = Object.keys(this.data.partials);
-
             partialsKeys.map((key)=> {
-                // console.log(key)
-                // console.log(this.components[this.data.components[key]])
-                // console.log('')
                 Handlebars.registerPartial(key, this.partials[this.data.partials[key]]);
             });
         }
 
-        const template = this.templateEngine.compile(templateSource);
-        const contentTemplate = this.templateEngine.compile(template(this.data));
+        // replace the template with the data
+        source = this.compile(source);
+        // compile the templates from the dat itself
+        source = this.compile(source);
 
-        return contentTemplate(this.data);
+        return source;
+    }
+
+    compile(source: string) {
+        let template = this.templateEngine.compile(source);
+        let compiledSource = template(this.data);
+        if(this.data.snippets) {
+            return this.snippets.replace(compiledSource, this.data.snippets);
+        }
+        return compiledSource;
     }
 }

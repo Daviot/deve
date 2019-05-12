@@ -11,6 +11,9 @@ Contains the templates of the page.
 ### partials
 Contains all reuseable elements with logic.
 
+### snippets
+Contains all reusable code snippets without own logic.
+
 ### admin
 Contains the deve admin interface.
 

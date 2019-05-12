@@ -5,7 +5,6 @@ export class Partials {
 
     load() {
         const files = this.fs.find('partials', { matching: '*.hbs' });
-        console.log(files);
         files.map((filePath) => {
             // remove first partials part of the filepath, for shorter syntax
             const short = filePath.replace('partials/', '');

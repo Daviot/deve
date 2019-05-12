@@ -1,4 +1,5 @@
 import { Partials } from './helper/partials';
+import { Snippets } from './helper/snippets';
 import { CLI } from './helper/cli';
 import { Builder } from './helper/builder';
 import * as fs from 'fs-jetpack';
@@ -46,6 +47,9 @@ glob('content/**/*.json')
         const partials = new Partials(fs);
         partials.load();
 
+        const snippets = new Snippets(fs);
+        snippets.load();
+
         // remove system files
         const pureFiles = files.filter((filePath: string) => filePath != 'content/config.json');
         let filesProgress = 1;
@@ -66,10 +70,10 @@ glob('content/**/*.json')
             //fileData = components.replace(fileData);
             //console.log(fileData.destination);
             //console.log(fs.cwd());
-            const builder = new Builder(templateEngine, fs, partials.all(), fileData, config);
+            const builder = new Builder(templateEngine, fs, partials.all(), snippets, fileData, config);
             const generated = builder.generate();
-            console.log(' ')
-            console.log(fileData)
+            //console.log(' ')
+            //console.log(fileData)
             // write the json data for debugging
             fs.write(`${fileData.destination}.json`, fileData);
             // write the generated tempalte

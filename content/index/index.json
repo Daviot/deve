@@ -4,5 +4,8 @@
         "title": "Title Index",
         "description": "Description Index"
     },
-    "body": "INDEX<br>{{head.title}}"
+    "body": "INDEX<br>{{head.title}}[[logo]]",
+    "snippets": {
+        "logo": "logo.hbs"
+    }
 }
