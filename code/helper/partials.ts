@@ -1,14 +1,14 @@
 import { FSJetpack } from 'fs-jetpack/types';
-export class Components {
+export class Partials {
     private store: any = {};
     constructor(private fs: FSJetpack) {}
 
     load() {
-        const files = this.fs.find('components', { matching: '*.hbs' });
+        const files = this.fs.find('partials', { matching: '*.hbs' });
         console.log(files);
         files.map((filePath) => {
-            // remove first components part of the filepath, for shorter syntax
-            const short = filePath.replace('components/', '');
+            // remove first partials part of the filepath, for shorter syntax
+            const short = filePath.replace('partials/', '');
             const content = this.fs.read(filePath);
             this.store[short] = content;
         });
@@ -23,7 +23,7 @@ export class Components {
     }
 
     replace(data: any) {
-        console.group(data);
+        console.log(data);
         return data;
     }
 }

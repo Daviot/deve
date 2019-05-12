@@ -1,4 +1,4 @@
-import { Components } from './helper/components';
+import { Partials } from './helper/partials';
 import { CLI } from './helper/cli';
 import { Builder } from './helper/builder';
 import * as fs from 'fs-jetpack';
@@ -43,7 +43,7 @@ glob('content/**/*.json')
 
         //console.log(files);
         // load the components for the generator to use
-        const components = new Components(fs);
+        const components = new Partials(fs);
         components.load();
 
         // remove system files
