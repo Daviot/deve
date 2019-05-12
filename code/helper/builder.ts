@@ -44,9 +44,9 @@ export class Builder {
             const componentKeys = Object.keys(this.data.components);
 
             componentKeys.map((key)=> {
-                console.log(key)
-                console.log(this.components[this.data.components[key]])
-                console.log('')
+                // console.log(key)
+                // console.log(this.components[this.data.components[key]])
+                // console.log('')
                 Handlebars.registerPartial(key, this.components[this.data.components[key]]);
             });
         }
