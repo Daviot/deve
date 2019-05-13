@@ -1,19 +1,48 @@
+import { Events } from './events';
 import { Snippets } from './snippets';
 import { FSJetpack } from 'fs-jetpack/types';
 import { Path } from './path';
 import * as Handlebars from 'handlebars';
+import { Partials } from './partials';
 
 export class Builder {
     data: any = null;
     template: string = '';
     path: Path;
     defaultTemplate = 'theme/default.hbs';
-    constructor(private templateEngine: any, private fs: FSJetpack, private partials:any, private snippets: Snippets, fileData: any, options: any = null) {
-        this.data = fileData;
-        if (options != null) {
-            this.data = Object.assign(options, fileData);
-        }
+    process = {
+        current: 0,
+        amount: 0
+    };
+    constructor(private templateEngine: any, private fs: FSJetpack, private partials: Partials, private snippets: Snippets, private events: Events, private options: any) {
         this.path = new Path();
+        this.events.sub('deve:builder:process:set', (amount:number)=> {
+            this.process.amount = amount;
+        });
+        this.events.sub('deve:builder:process:increment', ()=> {
+            this.process.current++;
+            if(this.process.current == this.process.amount) {
+                setTimeout(() => {
+                    this.events.pub('deve:builder:process:complete');
+                }, 500);
+            }
+        });
+    }
+
+    prepare() {
+        this.events.pub('deve:prepare:start');
+        this.events.pub('deve:prepare:complete');
+    }
+
+    build(filePath: string) {
+        console.log('build', filePath);
+        this.events.pub('deve:builder:process:increment');
+    }
+
+    getProcess() {
+        let process = JSON.parse(JSON.stringify(this.process));
+        process.percent = this.process.current / (this.process.amount > 0 ? this.process.amount : 1) * 100;
+        return process;
     }
 
     validate() {
@@ -37,7 +66,10 @@ export class Builder {
         }
     }
 
-    generate() {
+    generate(fileData: any) {
+        const options = JSON.parse(JSON.stringify(this.options));
+
+        this.data = Object.assign(options, fileData);
         // load the page template
         let source = this.loadTemplate();
 
@@ -45,7 +77,7 @@ export class Builder {
         if(this.data.partials) {
             const partialsKeys = Object.keys(this.data.partials);
             partialsKeys.map((key)=> {
-                Handlebars.registerPartial(key, this.partials[this.data.partials[key]]);
+                Handlebars.registerPartial(key, this.partials.all()[this.data.partials[key]]);
             });
         }
 
