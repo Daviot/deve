@@ -15,6 +15,13 @@ export class Path {
         }
     }
 
+    toSlug(filePath:string) {
+        let slug = filePath.replace(/\.json$/gi, '');
+        slug = slug.replace(/^content\//gi, '/');
+        console.log('>', slug)
+        return slug;
+    }
+
     fromSlug(slug: string) {
         // replace unneeded parts
         slug = slug.replace(/\/index\//gi, '/').replace(/\/index$/gi, '/');

@@ -71,6 +71,9 @@ events.sub('deve:watcher:start', () => {
 if(configArgs.useStartupBuild) {
     events.pub('deve:build:start');
 }
+if(!configArgs.useStartupBuild && configArgs.useWatcher) {
+    events.pub('deve:watcher:start');
+}
 
 /*
 const fileBuildStartTime = new Date().getTime();

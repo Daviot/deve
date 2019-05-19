@@ -68,14 +68,17 @@ export class CLI {
             });
             this.spinner.start('Waiting for changes');
             watcher.on('all', async (event, file: string) => {
-                let isWatching = ignore.find((ignore: string) => Minimatch(file, ignore)) == null;
+                console.log('watch', file, event)
+                const isNotIgnored = ignore.find((ignore: string) => Minimatch(file, ignore)) == null;
                 // @todo for plugin/snippets the needed pages must be found
                 // @todo for theme the needed pages must be found
                 // @todo for plugins the whole site or nothing should be generated
 
                 // @todo for content easy
-                if (isWatching) {
-                    isWatching = Minimatch(file, 'content/*');
+                if (isNotIgnored) {
+
+                    const isWatching = Minimatch(file, 'content/**/*');
+
                     if (isWatching) {
                         this.spinner.succeed(`${event} detected for ${file}`);
                         await callback(this.builder, file);
