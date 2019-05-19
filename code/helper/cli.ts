@@ -1,3 +1,4 @@
+import { Indexer } from './indexer';
 import { Builder } from './builder';
 import { FSJetpack } from 'fs-jetpack/types';
 import { Events } from './events';
@@ -14,6 +15,7 @@ export class CLI {
     configArgs: CliStartupConfiguration;
     builder: Builder;
     c: any;
+    indexer: Indexer;
     constructor(private fs: FSJetpack, private events: Events, private configFile: any) {
         const ora = require('ora');
         this.spinner = ora();
@@ -30,6 +32,7 @@ export class CLI {
 
         this.builder = new Builder(templateEngine, fs, partials, snippets, this.events, this.configFile);
         this.c = require('ansi-colors');
+        this.indexer = new Indexer(fs);
     }
     getDate(time: Date) {
         return time.toLocaleDateString();
@@ -71,19 +74,26 @@ export class CLI {
                 console.log('watch', file, event)
                 const isNotIgnored = ignore.find((ignore: string) => Minimatch(file, ignore)) == null;
                 // @todo for plugin/snippets the needed pages must be found
-                // @todo for theme the needed pages must be found
                 // @todo for plugins the whole site or nothing should be generated
 
-                // @todo for content easy
                 if (isNotIgnored) {
-
-                    const isWatching = Minimatch(file, 'content/**/*');
-
-                    if (isWatching) {
-                        this.spinner.succeed(`${event} detected for ${file}`);
-                        await callback(this.builder, file);
-                        this.spinner.start('Waiting for changes');
+                    this.spinner.succeed(`${event} detected for ${file}`);
+                    console.log('file', Minimatch(file, 'theme/**/*'));
+                    // @todo for theme the needed pages must be found
+                    // watch pages
+                    if (Minimatch(file, 'theme/**/*')) {
+                        const indexes = this.indexer.getIndex(file);
+                        // build all files which are depending on this theme
+                        indexes.map(async (file:string)=> {
+                            await callback(this.builder, file);
+                        });
                     }
+                    // @todo for content easy
+                    // watch pages
+                    if (Minimatch(file, 'content/**/*')) {
+                        await callback(this.builder, file);
+                    }
+                    this.spinner.start('Waiting for changes');
                 }
             });
         }
