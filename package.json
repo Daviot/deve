@@ -9,7 +9,7 @@
         "build": "tsc && node bin/code/index.js -b",
         "watch": "tsc && node bin/code/index.js -w",
         "develop": "tsc && node bin/code/index.js -wb",
-        "clean": "rm -rf public",
+        "clean": "rm -rf public && rm -rf indexes",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "Daviot <daviot@live.at>",
