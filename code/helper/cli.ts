@@ -94,10 +94,10 @@ export class CLI {
 
                 if (isNotIgnored) {
                     this.spinner.succeed(`${event} detected for ${file}`);
-                    console.log('file', Minimatch(file, 'theme/**/*'));
+                    //console.log('file', Minimatch(file, 'theme/**/*'));
                     // @todo for theme the needed pages must be found
                     // watch pages
-                    if (Minimatch(file, 'theme/**/*')) {
+                    if (Minimatch(file, 'theme/**/*') || Minimatch(file, 'partials/**/*') || Minimatch(file, 'snippets/**/*')) {
                         const indexes = this.indexer.getIndex(file);
                         // build all files which are depending on this theme
                         indexes.map(async (file:string)=> {
