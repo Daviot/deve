@@ -16,22 +16,22 @@ export class Builder {
     };
     constructor(private templateEngine: any, private fs: FSJetpack, private partials: Partials, private snippets: Snippets, private events: Events, private hooks: Hooks, private options: any) {
         this.path = new Path();
-        this.events.sub('deve:builder:process:set', (amount: number) => {
+        this.events.sub('builder:process:set', (amount: number) => {
             this.process.amount = amount;
         });
-        this.events.sub('deve:builder:process:increment', () => {
+        this.events.sub('builder:process:increment', () => {
             this.process.current++;
             if (this.process.current == this.process.amount) {
                 setTimeout(() => {
-                    this.events.pub('deve:builder:process:complete');
+                    this.events.pub('builder:process:complete');
                 }, 500);
             }
         });
     }
 
     prepare() {
-        this.events.pub('deve:prepare:start');
-        this.events.pub('deve:prepare:complete');
+        this.events.pub('prepare:start');
+        this.events.pub('prepare:complete');
     }
 
     build(filePath: string) {
@@ -49,7 +49,7 @@ export class Builder {
         this.fs.write(data.destination, generated);
         const fileBuildEndTime = new Date().getTime();
 
-        this.events.pub('deve:builder:process:increment', { start: fileBuildStartTime, end: fileBuildEndTime });
+        this.events.pub('builder:process:increment', { start: fileBuildStartTime, end: fileBuildEndTime });
     }
 
     getProcess() {

@@ -120,13 +120,13 @@ export class CLI {
         if (this.configArgs.useStartupBuild && callback && typeof callback == 'function') {
             this.builder.prepare();
             // when ready try to start watcher, when needed
-            this.events.sub('deve:builder:process:complete', ()=> {
+            this.events.sub('builder:process:complete', ()=> {
                 this.spinner.succeed('Build complete');
                 if(this.configArgs.useWatcher) {
-                    this.events.pub('deve:watcher:start');
+                    this.events.pub('watcher:start');
                 }
             });
-            this.events.sub('deve:builder:process:increment', ()=> {
+            this.events.sub('builder:process:increment', ()=> {
                 const proc = this.builder.getProcess();
                 this.spinner.text = `Building ${proc.percent}% ${this.c.dim(`${proc.current}/${proc.amount}`)}`;
             });
@@ -143,7 +143,7 @@ export class CLI {
 
                     //spinner.succeed('Preparing complete');
                     //spinner.start('Building');
-                    this.events.pub('deve:builder:process:set', pureFiles.length);
+                    this.events.pub('builder:process:set', pureFiles.length);
 
                     pureFiles.map((filePath: string) => {
                         callback(this.builder, filePath);

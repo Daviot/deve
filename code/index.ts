@@ -55,23 +55,23 @@ let ignore = fs
 // add git for ignoring
 ignore.push('.git');
 
-events.pub('deve:prepare:end');
+events.pub('prepare:end');
 
 
 // init startupbuild
-events.sub('deve:build:start', () => {
+events.sub('build:start', () => {
     cli.startBuild(ignore, (builder: Builder, filePath: string) => {
         builder.build(filePath);
     });
 });
 // init watcher
-events.sub('deve:watcher:start', () => {
+events.sub('watcher:start', () => {
     cli.startWatcher(ignore, (builder: Builder, filePath: string) => {
         builder.build(filePath);
     });
 });
 // init indexer
-events.sub('deve:indexer:start', () => {
+events.sub('indexer:start', () => {
     cli.startIndexer();
 });
 
@@ -81,13 +81,13 @@ if(configArgs == null) {
 }
 
 if(configArgs.useIndexer) {
-    events.pub('deve:indexer:start');
+    events.pub('indexer:start');
 }
 if(configArgs.useStartupBuild) {
-    events.pub('deve:build:start');
+    events.pub('build:start');
 }
 if(!configArgs.useStartupBuild && configArgs.useWatcher) {
-    events.pub('deve:watcher:start');
+    events.pub('watcher:start');
 }
 
 /*
@@ -139,7 +139,7 @@ glob('content/**\/*.json')
         // remove system files
         const pureFiles = files.filter((filePath: string) => filePath != 'content/config.json');
         let filesProgress = 1;
-        events.pub('deve:prepare:complete');
+        events.pub('prepare:complete');
 
         //spinner.succeed('Preparing complete');
         //spinner.start('Building');
