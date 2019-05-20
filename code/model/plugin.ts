@@ -1,4 +1,4 @@
-export class DevePlugin {
+export class Plugin {
     constructor() {
 
     }

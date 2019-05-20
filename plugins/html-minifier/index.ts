@@ -1,12 +1,14 @@
 import { Hooks } from './../../code/model/hooks';
-import { DevePlugin } from '../../code/model/plugin';
+import { Plugin } from '../../code/model/plugin';
 import { minify } from 'html-minifier';
 
-export default class HtmlMinifierPlugin extends DevePlugin {
+export default class HtmlMinifierPlugin extends Plugin {
     constructor(private hooks: Hooks) {
         super();
 
-
+        this.hooks.set('builder:generate#after', (source: string)=> {
+            return '<!--minified-->'+this.minify(source);
+        });
     }
 
     minify(source: string) {
