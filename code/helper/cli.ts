@@ -137,40 +137,38 @@ export class CLI {
         }
     }
 
-    startBuild(ignore: string[], callback: Function) {
+    async startBuild(ignore: string[], callback: Function) {
         if (this.configArgs.useStartupBuild && callback && typeof callback == 'function') {
             this.builder.prepare();
             // when ready try to start watcher, when needed
-            this.events.sub('builder:process:complete', () => {
-                this.spinner.succeed('Build complete');
-                if (this.configArgs.useWatcher) {
-                    this.events.pub('watcher:start');
-                }
-            });
-            this.events.sub('builder:process:increment', () => {
-                const proc = this.builder.getProcess();
-                this.spinner.text = `Building ${proc.percent}% ${this.c.dim(`${proc.current}/${proc.amount}`)}`;
-            });
+            // this.events.sub('builder:process:complete', () => {
+            //     this.spinner.succeed('Build complete');
+            //     if (this.configArgs.useWatcher) {
+            //         this.events.pub('watcher:start');
+            //     }
+            // });
+            // this.events.sub('builder:process:increment', () => {
+            //     const proc = this.builder.getProcess();
+            //     this.spinner.text = `Building ${proc.percent}% ${this.c.dim(`${proc.current}/${proc.amount}`)}`;
+            // });
             this.spinner.start('Building');
-            this.glob('content/**/*.json')
-                .then((files: any) => {
-                    if (files == null || files.length == 0) {
-                        //spinner.fail('No files to build');
-                        return;
-                    }
+            const files = await this.glob('content/**/*.json');
+            if (files == null || files.length == 0) {
+                //spinner.fail('No files to build');
+                return;
+            }
 
-                    //spinner.succeed('Preparing complete');
-                    //spinner.start('Building');
-                    this.events.pub('builder:process:set', files.length);
+            //spinner.succeed('Preparing complete');
+            //spinner.start('Building');
+            this.events.pub('builder:process:set', files.length);
 
-                    files.map(async (filePath: string) => {
-                        await callback(this.builder, filePath);
-                    });
-                })
-                .catch((error: any) => {
-                    //spinner.fail('Build failed');
-                    console.error(error);
-                });
+            files.map(async (filePath: string) => {
+                await callback(this.builder, filePath);
+            });
+            this.spinner.succeed('Build complete');
+            if (this.configArgs.useWatcher) {
+                this.events.pub('watcher:start');
+            }
         }
     }
 

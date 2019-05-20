@@ -16,7 +16,7 @@ export class Builder {
     };
     constructor(private templateEngine: any, private fs: FSJetpack, private partials: Partials, private snippets: Snippets, private events: Events, private hooks: Hooks, private options: any) {
         this.path = new Path();
-        this.events.sub('builder:process:set', (amount: number) => {
+        /*this.events.sub('builder:process:set', (amount: number) => {
             this.process.amount = amount;
         });
         this.events.sub('builder:process:increment', () => {
@@ -26,7 +26,7 @@ export class Builder {
                     this.events.pub('builder:process:complete');
                 }, 500);
             }
-        });
+        });*/
     }
 
     prepare() {
@@ -39,7 +39,7 @@ export class Builder {
         const fileBuildStartTime = new Date().getTime();
 
         const data = await this.getData(filePath);
-        console.log('build', filePath, data.destination);
+        //console.log('build', filePath, data.destination);
         // build the file
         const generated = await this.generate(data);
 
@@ -49,7 +49,7 @@ export class Builder {
         this.fs.write(data.destination, generated);
         const fileBuildEndTime = new Date().getTime();
 
-        this.events.pub('builder:process:increment', { start: fileBuildStartTime, end: fileBuildEndTime });
+        //this.events.pub('builder:process:increment', { start: fileBuildStartTime, end: fileBuildEndTime });
     }
 
     getProcess() {
@@ -166,7 +166,7 @@ export class Builder {
         let template = this.templateEngine.compile(source);
         let compiledSource = template(data);
         if (data.snippets) {
-            return this.snippets.replace(compiledSource, data.snippets);
+            return this.snippets.replace(compiledSource, data.snippets, data.source);
         }
         return compiledSource;
     }
