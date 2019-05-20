@@ -9,6 +9,7 @@
     },
     "body": "",
     "plugins": [
-        "html-minifier"
+        "html-minifier",
+        "sitemap"
     ]
 }
