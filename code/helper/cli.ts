@@ -98,7 +98,7 @@ export class CLI {
                     //console.log('file', Minimatch(file, 'theme/**/*'));
                     // @todo for theme the needed pages must be found
                     // watch pages
-                    if (Minimatch(file, 'theme/**/*') || Minimatch(file, 'partials/**/*') || Minimatch(file, 'snippets/**/*')) {
+                    if (Minimatch(file, 'theme/**/*') || Minimatch(file, 'partials/**/*') || Minimatch(file, 'snippets/**/*') || Minimatch(file, 'content/**/*.hbs')) {
                         const indexes = this.indexer.getIndex(file);
                         // build all files which are depending on this theme
                         indexes.map(async (file:string)=> {
@@ -107,7 +107,7 @@ export class CLI {
                     }
                     // @todo for content easy
                     // watch pages
-                    if (Minimatch(file, 'content/**/*')) {
+                    if (Minimatch(file, 'content/**/*.json')) {
                         await callback(this.builder, file);
                     }
                     this.spinner.start('Waiting for changes');
