@@ -1,10 +1,11 @@
 {
+    "theme": "empty.hbs",
     "page": "index.hbs",
     "head": {
         "title": "Title Index",
         "description": "Description Index"
     },
-    "body": "INDEX<br>{{head.title}}[[logo]]",
+    "body": "<div>INDEX<div>\n<h1>{{head.title}}</h1>\n<aside>[[logo]]</aside>",
     "snippets": {
         "logo": "logo.hbs"
     }
