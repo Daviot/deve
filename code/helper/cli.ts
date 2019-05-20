@@ -8,6 +8,7 @@ import * as Args from 'command-line-args';
 import * as Minimatch from 'minimatch';
 import { Partials } from './partials';
 import { Snippets } from './snippets';
+import { Hooks } from '../model/hooks';
 
 export class CLI {
     spinner: any; // ora spinner
@@ -16,7 +17,7 @@ export class CLI {
     builder: Builder;
     c: any;
     indexer: Indexer;
-    constructor(private fs: FSJetpack, private events: Events, private configFile: any) {
+    constructor(private fs: FSJetpack, private events: Events, private hooks: Hooks, private configFile: any) {
         const ora = require('ora');
         this.spinner = ora();
         const { promisify } = require('util');
@@ -30,7 +31,7 @@ export class CLI {
         const snippets = new Snippets(this.fs);
         snippets.load();
 
-        this.builder = new Builder(templateEngine, fs, partials, snippets, this.events, this.configFile);
+        this.builder = new Builder(templateEngine, fs, partials, snippets, this.events, this.hooks, this.configFile);
         this.c = require('ansi-colors');
         this.indexer = new Indexer(fs);
     }

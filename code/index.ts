@@ -1,3 +1,4 @@
+import { Hooks } from './model/hooks';
 import { Partials } from './helper/partials';
 import { Snippets } from './helper/snippets';
 import { CLI } from './helper/cli';
@@ -17,6 +18,8 @@ const events = new Events();
 
 const path = new Path();
 
+const hooks = new Hooks();
+
 const spinner = ora();
 let time = new Date();
 
@@ -31,7 +34,7 @@ if (fs.exists(configPath) == 'file') {
     config = JSON.parse(fs.read(configPath));
 }
 
-const cli = new CLI(fs, events, config);
+const cli = new CLI(fs, events, hooks, config);
 
 // load the arguments from the commandline
 const configArgs = cli.loadArguments();
