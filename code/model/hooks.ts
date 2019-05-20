@@ -1,7 +1,6 @@
 export class Hooks {
 
     constructor() {
-        console.log('create hooks');
         (<any>global).hooks = {};
     }
 
