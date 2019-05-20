@@ -39,22 +39,38 @@ export class CLI {
     }
 
     loadArguments(): CliStartupConfiguration {
+        let config = null;
         // possible options
-        const args = Args([
-            {
-                name: 'watch',
-                alias: 'w',
-                type: Boolean
-            },
-            {
-                name: 'build',
-                alias: 'b',
-                type: Boolean
+        try {
+
+            const args = Args([
+                {
+                    name: 'watch',
+                    alias: 'w',
+                    type: Boolean
+                },
+                {
+                    name: 'build',
+                    alias: 'b',
+                    type: Boolean
+                },
+                {
+                    name: 'indexer',
+                    alias: 'i',
+                    type: Boolean
+                }
+            ]);
+            config = new CliStartupConfiguration(args);
+        } catch(ex) {
+            if(ex) {
+                if(ex.optionName != null) {
+                    console.error(`unknown option "${ex.optionName}"`);
+                }
             }
-        ]);
-        let config = new CliStartupConfiguration(args);
+            return;
+        }
         // fallback when nothing is active start build
-        if (!config.useStartupBuild && !config.useWatcher) {
+        if (!config.useStartupBuild && !config.useWatcher && !config.useIndexer) {
             config.useStartupBuild = true;
         }
         // store the config
@@ -137,5 +153,27 @@ export class CLI {
                     console.error(error);
                 });
         }
+    }
+
+    startIndexer() {
+        this.spinner.start('Indexing');
+        this.glob('content/**/*.json')
+                .then((files: any) => {
+                    if (files == null || files.length == 0) {
+                        //spinner.fail('No files to build');
+                        return;
+                    }
+
+                    // remove system files
+                    const pureFiles = files.filter((filePath: string) => filePath != 'content/config.json');
+
+                    pureFiles.map((filePath: string) => {
+                        this.indexer.generateIndexesOfFile(filePath, this.builder);
+                    });
+                    this.spinner.succeed('Indexing complete');
+                })
+                .catch((error: any) => {
+                    console.error(error);
+                });
     }
 }

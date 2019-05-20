@@ -67,7 +67,19 @@ events.sub('deve:watcher:start', () => {
         builder.build(filePath);
     });
 });
+// init indexer
+events.sub('deve:indexer:start', () => {
+    cli.startIndexer();
+});
 
+//console.log('configArgs', configArgs)
+if(configArgs == null) {
+    process.exit();
+}
+
+if(configArgs.useIndexer) {
+    events.pub('deve:indexer:start');
+}
 if(configArgs.useStartupBuild) {
     events.pub('deve:build:start');
 }

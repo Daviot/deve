@@ -8,6 +8,7 @@
         "watch_source": "tsc --watch",
         "build": "tsc && node bin/code/index.js -b",
         "watch": "tsc && node bin/code/index.js -w",
+        "indexer": "tsc && node bin/code/index.js -i",
         "develop": "tsc && node bin/code/index.js -wb",
         "clean": "rm -rf public && rm -rf indexes",
         "test": "echo \"Error: no test specified\" && exit 1"
