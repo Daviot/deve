@@ -44,8 +44,8 @@ export class Indexer {
         const path = this.fs.path(extendedFileArray.join('/'));
         return path;
     }
-    generateIndexesOfFile(filePath: string, builder: Builder) {
-        const data = builder.getData(filePath);
+    async generateIndexesOfFile(filePath: string, builder: Builder) {
+        const data = await builder.getData(filePath);
 
         let resources = [];
         // load the resources of the given file data

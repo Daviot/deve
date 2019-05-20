@@ -57,36 +57,35 @@ ignore.push('.git');
 
 events.pub('prepare:end');
 
-
 // init startupbuild
-events.sub('build:start', () => {
-    cli.startBuild(ignore, (builder: Builder, filePath: string) => {
-        builder.build(filePath);
+events.sub('build:start', async () => {
+    await cli.startBuild(ignore, async (builder: Builder, filePath: string) => {
+        await builder.build(filePath);
     });
 });
 // init watcher
-events.sub('watcher:start', () => {
-    cli.startWatcher(ignore, (builder: Builder, filePath: string) => {
-        builder.build(filePath);
+events.sub('watcher:start', async () => {
+    await cli.startWatcher(ignore, async (builder: Builder, filePath: string) => {
+        await builder.build(filePath);
     });
 });
 // init indexer
-events.sub('indexer:start', () => {
-    cli.startIndexer();
+events.sub('indexer:start', async () => {
+    await cli.startIndexer();
 });
 
 //console.log('configArgs', configArgs)
-if(configArgs == null) {
+if (configArgs == null) {
     process.exit();
 }
 
-if(configArgs.useIndexer) {
+if (configArgs.useIndexer) {
     events.pub('indexer:start');
 }
-if(configArgs.useStartupBuild) {
+if (configArgs.useStartupBuild) {
     events.pub('build:start');
 }
-if(!configArgs.useStartupBuild && configArgs.useWatcher) {
+if (!configArgs.useStartupBuild && configArgs.useWatcher) {
     events.pub('watcher:start');
 }
 

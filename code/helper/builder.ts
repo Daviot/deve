@@ -34,14 +34,14 @@ export class Builder {
         this.events.pub('prepare:complete');
     }
 
-    build(filePath: string) {
+    async build(filePath: string) {
 
         const fileBuildStartTime = new Date().getTime();
 
-        const data = this.getData(filePath);
+        const data = await this.getData(filePath);
         console.log('build', filePath, data.destination);
         // build the file
-        const generated = this.generate(data);
+        const generated = await this.generate(data);
 
         // write the json data for debugging
         this.fs.write(`${data.destination}.json`, data);
@@ -99,9 +99,13 @@ export class Builder {
         return body;
     }
 
-    getData(filePath: any) {
+    async getData(filePath: any) {
         // make a clone of the default options
-        const options = JSON.parse(JSON.stringify(this.options));
+        let options = JSON.parse(JSON.stringify(this.options));
+        const hookedOptions = await this.hooks.call('builder:get-data#before', options);
+        if(hookedOptions) {
+            options = hookedOptions;
+        }
         // read file content
         const fileContent = this.fs.read(filePath);
         // parse the content
@@ -114,10 +118,22 @@ export class Builder {
 
         // etend with the filedata
         const fileData = Object.assign(options, data);
+
+        // create hook for plugins
+        const hookedData = await this.hooks.call('builder:get-data#after', fileData);
+
+        if(hookedData) {
+            return hookedData;
+        }
         return fileData;
     }
 
-    generate(data: any) {
+    async generate(data: any) {
+        const hookedData = await this.hooks.call('builder:generate#before', data);
+
+        if(hookedData) {
+            data = hookedData;
+        }
         // load the page template
         let source = this.loadTheme(data);
 
@@ -137,8 +153,12 @@ export class Builder {
         // compile the templates from the data itself
         source = this.compile(source, data);
 
-        //@todo apply hooks for plugins
+        // create hook for plugins
+        const hookedSource = await this.hooks.call('builder:generate#after', source);
 
+        if(hookedSource) {
+            source = hookedSource;
+        }
         return source;
     }
 

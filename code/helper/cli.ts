@@ -43,7 +43,6 @@ export class CLI {
         let config = null;
         // possible options
         try {
-
             const args = Args([
                 {
                     name: 'watch',
@@ -62,9 +61,9 @@ export class CLI {
                 }
             ]);
             config = new CliStartupConfiguration(args);
-        } catch(ex) {
-            if(ex) {
-                if(ex.optionName != null) {
+        } catch (ex) {
+            if (ex) {
+                if (ex.optionName != null) {
                     console.error(`unknown option "${ex.optionName}"`);
                 }
             }
@@ -74,6 +73,11 @@ export class CLI {
         if (!config.useStartupBuild && !config.useWatcher && !config.useIndexer) {
             config.useStartupBuild = true;
         }
+        // @todo fix order of mode execution build is always first
+        // indexer needs the startup build to generate the correct values
+        // if(!config.useStartupBuild && config.useIndexer) {
+        //     config.useStartupBuild = true;
+        // }
         // store the config
         this.configArgs = config;
         return config;
@@ -88,25 +92,20 @@ export class CLI {
             });
             this.spinner.start('Waiting for changes');
             watcher.on('all', async (event, file: string) => {
-                console.log('watch', file, event)
+                console.log('watch', file, event);
                 const isNotIgnored = ignore.find((ignore: string) => Minimatch(file, ignore)) == null;
-                // @todo for plugin/snippets the needed pages must be found
-                // @todo for plugins the whole site or nothing should be generated
 
                 if (isNotIgnored) {
                     this.spinner.succeed(`${event} detected for ${file}`);
-                    //console.log('file', Minimatch(file, 'theme/**/*'));
-                    // @todo for theme the needed pages must be found
-                    // watch pages
+                    // watch themes, pages, partials and snippets
                     if (Minimatch(file, 'theme/**/*') || Minimatch(file, 'partials/**/*') || Minimatch(file, 'snippets/**/*') || Minimatch(file, 'content/**/*.hbs')) {
                         const indexes = this.indexer.getIndex(file);
                         // build all files which are depending on this theme
-                        indexes.map(async (file:string)=> {
+                        indexes.map(async (file: string) => {
                             await callback(this.builder, file);
                         });
                     }
-                    // @todo for content easy
-                    // watch pages
+                    // watch content
                     if (Minimatch(file, 'content/**/*.json')) {
                         await callback(this.builder, file);
                     }
@@ -120,13 +119,13 @@ export class CLI {
         if (this.configArgs.useStartupBuild && callback && typeof callback == 'function') {
             this.builder.prepare();
             // when ready try to start watcher, when needed
-            this.events.sub('builder:process:complete', ()=> {
+            this.events.sub('builder:process:complete', () => {
                 this.spinner.succeed('Build complete');
-                if(this.configArgs.useWatcher) {
+                if (this.configArgs.useWatcher) {
                     this.events.pub('watcher:start');
                 }
             });
-            this.events.sub('builder:process:increment', ()=> {
+            this.events.sub('builder:process:increment', () => {
                 const proc = this.builder.getProcess();
                 this.spinner.text = `Building ${proc.percent}% ${this.c.dim(`${proc.current}/${proc.amount}`)}`;
             });
@@ -145,8 +144,8 @@ export class CLI {
                     //spinner.start('Building');
                     this.events.pub('builder:process:set', pureFiles.length);
 
-                    pureFiles.map((filePath: string) => {
-                        callback(this.builder, filePath);
+                    pureFiles.map(async (filePath: string) => {
+                        await callback(this.builder, filePath);
                     });
                 })
                 .catch((error: any) => {
@@ -156,25 +155,21 @@ export class CLI {
         }
     }
 
-    startIndexer() {
+    async startIndexer() {
         this.spinner.start('Indexing');
-        this.glob('content/**/*.json')
-                .then((files: any) => {
-                    if (files == null || files.length == 0) {
-                        //spinner.fail('No files to build');
-                        return;
-                    }
+        const files = await this.glob('content/**/*.json');
 
-                    // remove system files
-                    const pureFiles = files.filter((filePath: string) => filePath != 'content/config.json');
+        if (files == null || files.length == 0) {
+            //spinner.fail('No files to build');
+            return;
+        }
 
-                    pureFiles.map((filePath: string) => {
-                        this.indexer.generateIndexesOfFile(filePath, this.builder);
-                    });
-                    this.spinner.succeed('Indexing complete');
-                })
-                .catch((error: any) => {
-                    console.error(error);
-                });
+        // remove system files
+        const pureFiles = files.filter((filePath: string) => filePath != 'content/config.json');
+
+        pureFiles.map(async (filePath: string) => {
+            await this.indexer.generateIndexesOfFile(filePath, this.builder);
+        });
+        this.spinner.succeed('Indexing complete');
     }
 }

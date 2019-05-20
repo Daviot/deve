@@ -24,10 +24,11 @@ export class Hooks {
         this.hooks[name].push(func);
     }
 
-    call(name: string, data: any) {
+    async call(name: string, data: any) {
         const hooks = this.get(name);
-        hooks.map(async (hook)=> {
-            await hook(data);
-        });
+        for(let i = 0, len = hooks.length; i < len; i++) {
+            data = await hooks[i](data);
+        }
+        return data;
     }
 }
