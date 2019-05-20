@@ -20,9 +20,9 @@ export class Snippets {
      * Returns the content for a snippet path
      * @param snippet string with the path to the snippet
      */
-    get(snippet: string) {
+    get(snippet: string, path: string) {
         if(!this.store.hasOwnProperty(snippet)) {
-            console.error(`unknown snippet "${snippet}"`);
+            console.error(`unknown snippet "${snippet}" in "${path}"`);
             return '';
         }
         return this.store[snippet];
@@ -40,11 +40,11 @@ export class Snippets {
      * @param source html source code where snippets should be replaced
      * @param snippets object with key value pair that should be replaced, where key is indicator in the source and the value is the path to the snippet
      */
-    replace(source: string, snippets: any) {
+    replace(source: string, snippets: any, path: string) {
         if (snippets) {
             const keys = Object.keys(snippets);
             keys.map((key) => {
-                source = source.replace(new RegExp('(\\[\\[' + key + '\\]\\])', 'gi'), this.get(snippets[key]));
+                source = source.replace(new RegExp('(\\[\\[' + key + '\\]\\])', 'gi'), this.get(snippets[key], path));
             });
         }
         return source;
