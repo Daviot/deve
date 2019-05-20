@@ -4,16 +4,17 @@ import { FSJetpack } from 'fs-jetpack/types';
 import { Path } from './path';
 import * as Handlebars from 'handlebars';
 import { Partials } from './partials';
+import { Hooks } from '../model/hooks';
 
 export class Builder {
     template: string = '';
     path: Path;
-    defaultTemplate = 'theme/default.hbs';
+    defaultTheme = 'default.hbs';
     process = {
         current: 0,
         amount: 0
     };
-    constructor(private templateEngine: any, private fs: FSJetpack, private partials: Partials, private snippets: Snippets, private events: Events, private options: any) {
+    constructor(private templateEngine: any, private fs: FSJetpack, private partials: Partials, private snippets: Snippets, private events: Events, private hooks: Hooks, private options: any) {
         this.path = new Path();
         this.events.sub('deve:builder:process:set', (amount: number) => {
             this.process.amount = amount;
@@ -61,19 +62,41 @@ export class Builder {
         return data != null;
     }
 
-    loadTemplate(data: any) {
-        // when no data is set return default
-        if (data != null || data.page != null) {
-            return this.fs.read(this.defaultTemplate);
+    loadTheme(data: any) {
+        if (data == null) {
+            return null;
         }
-        const path = this.fs.path(this.path.dir(data.source), data.page);
+
+        // when no data is set return default
+        if (data.theme == null) {
+            return this.fs.read(this.defaultTheme);
+        }
+        const path = this.fs.path(`theme/${data.theme}`);
         if (!this.fs.exists(path)) {
-            console.error(`template "${data.page}" could not be found for "${data.source}", fallback to "${this.defaultTemplate}"`);
-            return this.fs.read(this.defaultTemplate);
+            console.error(`theme "${data.theme}" could not be found for "${data.source}", fallback to "${this.defaultTheme}"`);
+            return this.fs.read(this.defaultTheme);
         }
         let html = this.fs.read(path);
 
         return html;
+    }
+    loadPage(data: any) {
+        if (data == null) {
+            return null;
+        }
+
+        // when no data is set return default
+        if (data.page == null) {
+            return data.body;
+        }
+        const path = this.fs.path(`${this.path.dir(data.source)}/${data.page}`);
+        if (!this.fs.exists(path)) {
+            console.error(`page "${data.page}" could not be found for "${data.source}"`);
+            return data.body;
+        }
+        let body = this.fs.read(path);
+        body = this.compile(body, data);
+        return body;
     }
 
     getData(filePath: any) {
@@ -96,7 +119,7 @@ export class Builder {
 
     generate(data: any) {
         // load the page template
-        let source = this.loadTemplate(data);
+        let source = this.loadTheme(data);
 
         // register partials
         if (data.partials) {
@@ -106,10 +129,15 @@ export class Builder {
             });
         }
 
+        // check if the file has a page file defined to extend the body
+        data.body = this.loadPage(data);
+
         // replace the template with the data
         source = this.compile(source, data);
-        // compile the templates from the dat itself
+        // compile the templates from the data itself
         source = this.compile(source, data);
+
+        //@todo apply hooks for plugins
 
         return source;
     }

@@ -6,9 +6,9 @@ export class Path {
             case 'file':
                 let split = path.split('/');
                 split.pop();
-                return fs.path(split.join('/')).replace(`${fs.cwd()}`, '');
+                return split.join('/').replace(`${fs.cwd()}`, '');
             case 'dir':
-                return fs.path(path).replace(`${fs.cwd()}`, '');
+                return path.replace(`${fs.cwd()}`, '');
             default:
                 console.error(`path does not exist "${path}"`);
                 return '';
