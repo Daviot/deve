@@ -17,7 +17,7 @@ export class CLI {
     builder: Builder;
     c: any;
     indexer: Indexer;
-    constructor(private fs: FSJetpack, private events: Events, private hooks: Hooks, private configFile: any) {
+    constructor(private fs: FSJetpack, private events: Events, private hooks: Hooks, private config: any) {
         const ora = require('ora');
         this.spinner = ora();
         const { promisify } = require('util');
@@ -31,7 +31,7 @@ export class CLI {
         const snippets = new Snippets(this.fs);
         snippets.load();
 
-        this.builder = new Builder(templateEngine, fs, partials, snippets, this.events, this.hooks, this.configFile);
+        this.builder = new Builder(templateEngine, fs, partials, snippets, this.events, this.hooks, this.config);
         this.c = require('ansi-colors');
         this.indexer = new Indexer(fs);
     }
@@ -81,6 +81,28 @@ export class CLI {
         // store the config
         this.configArgs = config;
         return config;
+    }
+
+    async start() {
+        //load plugins based on the order in the config file
+        const plugins = this.config.plugins;
+        if (plugins) {
+            for (var i = 0, len = plugins.length; i < len; i++) {
+                const pluginName = plugins[i];
+                const pluginConstructor = await import(`../../plugins/${pluginName}/index`);
+                const plugin = new pluginConstructor.default(this.hooks);
+            }
+        }
+
+        if (this.configArgs.useIndexer) {
+            this.events.pub('indexer:start');
+        }
+        if (this.configArgs.useStartupBuild) {
+            this.events.pub('build:start');
+        }
+        if (!this.configArgs.useStartupBuild && this.configArgs.useWatcher) {
+            this.events.pub('watcher:start');
+        }
     }
 
     startWatcher(ignore: string[], callback: Function) {
@@ -137,14 +159,11 @@ export class CLI {
                         return;
                     }
 
-                    // remove system files
-                    const pureFiles = files.filter((filePath: string) => filePath != 'content/config.json');
-
                     //spinner.succeed('Preparing complete');
                     //spinner.start('Building');
-                    this.events.pub('builder:process:set', pureFiles.length);
+                    this.events.pub('builder:process:set', files.length);
 
-                    pureFiles.map(async (filePath: string) => {
+                    files.map(async (filePath: string) => {
                         await callback(this.builder, filePath);
                     });
                 })
@@ -164,10 +183,7 @@ export class CLI {
             return;
         }
 
-        // remove system files
-        const pureFiles = files.filter((filePath: string) => filePath != 'content/config.json');
-
-        pureFiles.map(async (filePath: string) => {
+        files.map(async (filePath: string) => {
             await this.indexer.generateIndexesOfFile(filePath, this.builder);
         });
         this.spinner.succeed('Indexing complete');

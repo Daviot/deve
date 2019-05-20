@@ -6,5 +6,8 @@
     "body": "Pages Nice<br>{{head.title}} {{>button}}",
     "partials": {
         "button": "button.hbs"
+    },
+    "snippets": {
+        "logo": "logo.hbs"
     }
 }

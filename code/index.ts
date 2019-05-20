@@ -28,7 +28,7 @@ console.log(logo);
 
 // load the config
 let config: any = null;
-const configPath = 'content/config.json';
+const configPath = 'config/config.json';
 const buildStartTime = new Date().getTime();
 if (fs.exists(configPath) == 'file') {
     config = JSON.parse(fs.read(configPath));
@@ -79,107 +79,5 @@ if (configArgs == null) {
     process.exit();
 }
 
-if (configArgs.useIndexer) {
-    events.pub('indexer:start');
-}
-if (configArgs.useStartupBuild) {
-    events.pub('build:start');
-}
-if (!configArgs.useStartupBuild && configArgs.useWatcher) {
-    events.pub('watcher:start');
-}
-
-/*
-const fileBuildStartTime = new Date().getTime();
-            //console.log('');
-            const fileContent = this.fs.read(filePath);
-            let fileData = JSON.parse(fileContent);
-            fileData.source = filePath;
-            if (fileData.slug == null) {
-                fileData.slug = path.dir(filePath);
-            }
-            fileData.destination = path.fromSlug(fileData.slug);
-
-            //fileData = components.replace(fileData);
-            //console.log(fileData.destination);
-            //console.log(fs.cwd());
-            const builder = new Builder(templateEngine, fs, partials.all(), snippets, fileData, config);
-            const generated = builder.generate();
-            //console.log(' ')
-            //console.log(fileData)
-            // write the json data for debugging
-            fs.write(`${fileData.destination}.json`, fileData);
-            // write the generated tempalte
-            fs.write(fileData.destination, generated);
-            const fileBuildEndTime = new Date().getTime();
-            spinner.text = `Built file ${filesProgress} of ${pureFiles.length} in ${c.green(`${(fileBuildEndTime - fileBuildStartTime) / 1000}s`)}`;
-            if (filesProgress++ == pureFiles.length) {
-
-            }
-*/
-
-/*
-glob('content/**\/*.json')
-    .then((files: any) => {
-        if(files == null || files.length == 0) {
-            //spinner.fail('No files to build');
-            return;
-        }
-
-
-        //console.log(files);
-        // load the partials for the generator to use
-        const partials = new Partials(fs);
-        partials.load();
-
-        const snippets = new Snippets(fs);
-        snippets.load();
-
-        // remove system files
-        const pureFiles = files.filter((filePath: string) => filePath != 'content/config.json');
-        let filesProgress = 1;
-        events.pub('prepare:complete');
-
-        //spinner.succeed('Preparing complete');
-        //spinner.start('Building');
-        pureFiles.map((filePath: string) => {
-            const fileBuildStartTime = new Date().getTime();
-            //console.log('');
-            const fileContent = fs.read(filePath);
-            let fileData = JSON.parse(fileContent);
-            fileData.source = filePath;
-            if (fileData.slug == null) {
-                fileData.slug = path.dir(filePath);
-            }
-            fileData.destination = path.fromSlug(fileData.slug);
-
-            //fileData = components.replace(fileData);
-            //console.log(fileData.destination);
-            //console.log(fs.cwd());
-            const builder = new Builder(templateEngine, fs, partials.all(), snippets, fileData, config);
-            const generated = builder.generate();
-            //console.log(' ')
-            //console.log(fileData)
-            // write the json data for debugging
-            fs.write(`${fileData.destination}.json`, fileData);
-            // write the generated tempalte
-            fs.write(fileData.destination, generated);
-            const fileBuildEndTime = new Date().getTime();
-            spinner.text = `Built file ${filesProgress} of ${pureFiles.length} in ${c.green(`${(fileBuildEndTime - fileBuildStartTime) / 1000}s`)}`;
-            if (filesProgress++ == pureFiles.length) {
-                final(pureFiles.length);
-            }
-        });
-    })
-    .catch((error: any) => {
-        //spinner.fail('Build failed');
-        console.error(error);
-    });
-function final(amountOfFiles: number) {
-    const buildEndTime = new Date().getTime();
-    const buildTime = (buildEndTime - buildStartTime) / 1000;
-    spinner.succeed(
-        `Build complete in ${c.green(`${buildTime}s`)} for ${c.green(amountOfFiles)} ${amountOfFiles == 1 ? 'file' : 'files'} ${c.dim(`${buildTime / amountOfFiles}s/file`)}`
-    );
-}
-*/
+// startup the cli
+cli.start();

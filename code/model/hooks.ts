@@ -1,34 +1,39 @@
 export class Hooks {
-    hooks: any = {};
 
     constructor() {
-
+        console.log('create hooks');
+        (<any>global).hooks = {};
     }
 
     get(name: string): Function[] {
         if(!name) {
             return [() => {}];
         }
-        const keys = Object.keys(this.hooks);
-        const hooks = [...keys.filter((key)=> key == name).map((key)=> {
-            return this.hooks[key];
-        })];
+        const keys = Object.keys((<any>global).hooks);
+        const hasHooks = keys.find((key)=> key == name);
 
-        return hooks;
+        if(hasHooks) {
+            return (<any>global).hooks[name];
+        }
+        return [() => {}];
     }
 
     set(name: string, func: Function) {
-        if(!this.hooks[name]) {
-            this.hooks[name] = [];
+        if(!(<any>global).hooks[name]) {
+            (<any>global).hooks[name] = [];
         }
-        this.hooks[name].push(func);
+        (<any>global).hooks[name].push(func);
     }
 
     async call(name: string, data: any) {
         const hooks = this.get(name);
         for(let i = 0, len = hooks.length; i < len; i++) {
+            if(typeof hooks[i] != 'function') {
+                continue;
+            }
             data = await hooks[i](data);
         }
+
         return data;
     }
 }
