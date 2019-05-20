@@ -3,7 +3,7 @@
         "title": "Title Demo",
         "description": "Description Index"
     },
-    "theme": "theme/empty.hbs",
+    "theme": "empty.hbs",
     "body": "DEMO<br>{{head.title}} {{>button}}",
     "partials": {
         "button": "button.hbs"
