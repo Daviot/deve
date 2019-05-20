@@ -8,7 +8,6 @@
         "button": "button.hbs"
     },
     "snippets": {
-        "logo": "logo.hbs",
-        "dead": "dead.hbs"
+        "logo": "logo.hbs"
     }
 }
