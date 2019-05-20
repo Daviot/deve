@@ -42,7 +42,6 @@ export class Indexer {
     }
     getIndexFilePath(filePath: string) {
         const path = this.fs.path(`indexes${filePath.replace(/\.hbs$/i, '.txt')}`);
-        console.log(path)
         return path;
     }
     generateIndexesOfFile(filePath: string, builder: Builder) {
