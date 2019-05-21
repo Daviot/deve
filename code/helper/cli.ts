@@ -17,6 +17,10 @@ export class CLI {
     builder: Builder;
     c: any;
     indexer: Indexer;
+
+    countDown: number;
+    files: any[] = [];
+
     constructor(private fs: FSJetpack, private events: Events, private hooks: Hooks, private config: any) {
         const ora = require('ora');
         this.spinner = ora();
@@ -140,19 +144,29 @@ export class CLI {
     async startBuild(ignore: string[], callback: Function) {
         if (this.configArgs.useStartupBuild && callback && typeof callback == 'function') {
             this.builder.prepare();
-            // when ready try to start watcher, when needed
-            // this.events.sub('builder:process:complete', () => {
-            //     this.spinner.succeed('Build complete');
-            //     if (this.configArgs.useWatcher) {
-            //         this.events.pub('watcher:start');
-            //     }
-            // });
+
+            this.events.sub('builder:build:done', async (data:any) => {
+                this.countDown--;
+                if(this.countDown > 0) {
+                    this.spinner.text = `${this.countDown + 1} files to process`;
+                    this.files.push(data);
+                    return;
+                }
+                this.spinner.succeed('Build complete');
+                const resultFiles = await this.hooks.call('builder#after', this.files);
+            });
             // this.events.sub('builder:process:increment', () => {
             //     const proc = this.builder.getProcess();
             //     this.spinner.text = `Building ${proc.percent}% ${this.c.dim(`${proc.current}/${proc.amount}`)}`;
             // });
             this.spinner.start('Building');
-            const files = await this.glob('content/**/*.json');
+            let files = await this.glob('content/**/*.json');
+            const hookedFiles = await this.hooks.call('builder#before', files);
+
+            if(hookedFiles) {
+                files = hookedFiles;
+            }
+
             if (files == null || files.length == 0) {
                 //spinner.fail('No files to build');
                 return;
@@ -160,15 +174,18 @@ export class CLI {
 
             //spinner.succeed('Preparing complete');
             //spinner.start('Building');
-            this.events.pub('builder:process:set', files.length);
 
             files.map(async (filePath: string) => {
                 await callback(this.builder, filePath);
             });
-            this.spinner.succeed('Build complete');
-            if (this.configArgs.useWatcher) {
-                this.events.pub('watcher:start');
-            }
+            this.countDown = files.length;
+
+
+            //this.spinner.succeed('Build complete');
+            //const resultFiles = await this.hooks.call('builder#after', files);
+            //if (this.configArgs.useWatcher) {
+            //    this.events.pub('watcher:start');
+            //}
         }
     }
 

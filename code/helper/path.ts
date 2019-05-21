@@ -6,7 +6,8 @@ export class Path {
             case 'file':
                 let split = path.split('/');
                 split.pop();
-                return split.join('/').replace(`${fs.cwd()}`, '');
+                const dir = split.join('/').replace(`${fs.cwd()}`, '');
+                return dir;
             case 'dir':
                 return path.replace(`${fs.cwd()}`, '');
             default:

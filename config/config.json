@@ -8,8 +8,12 @@
         "description": "Description"
     },
     "body": "",
+    "baseUrl": "http://www.daviot.at",
     "plugins": [
         "html-minifier",
         "sitemap"
-    ]
+    ],
+    "config": {
+        "slugWithTrailingSlash": true
+    }
 }

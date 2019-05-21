@@ -35,16 +35,21 @@ export class Builder {
     }
 
     async build(filePath: string) {
+        const hookedFilePath = await this.hooks.call('builder:build#before', filePath);
+
+        if(hookedFilePath) {
+            filePath = hookedFilePath;
+        }
 
         if(!this.fs.exists(filePath)) {
-            return;
+            return null;
         }
         const fileBuildStartTime = new Date().getTime();
 
-        const data = await this.getData(filePath);
+        let data = await this.getData(filePath);
 
         if(data == null) {
-            return;
+            return null;
         }
         //console.log('build', filePath, data.destination);
         // build the file
@@ -55,7 +60,16 @@ export class Builder {
         // write the generated tempalte
         this.fs.write(data.destination, generated);
         const fileBuildEndTime = new Date().getTime();
+        data.buildTime = fileBuildEndTime - fileBuildStartTime;
 
+        const hookedData = await this.hooks.call('builder:build#after', data);
+
+        if(hookedData) {
+            data = hookedData;
+        }
+        this.events.pub('builder:build:done', data);
+
+        return data;
         //this.events.pub('builder:process:increment', { start: fileBuildStartTime, end: fileBuildEndTime });
     }
 
@@ -123,6 +137,10 @@ export class Builder {
         data.source = filePath;
         if (data.slug == null) {
             data.slug = this.path.toSlug(filePath);
+        }
+        // force that slugs start with a /
+        if(data.slug.indexOf('/') != 0) {
+            data.slug = `/${data.slug}`;
         }
         data.destination = this.path.fromSlug(data.slug);
 

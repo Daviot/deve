@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{{head.title}}</title>
-    {{head.meta}}
+    <link rel="canonical" href="{{baseUrl}}{{slug}}{{#if config.slugWithTrailingSlash}}/{{/if}}" />
+    {{ head.meta }}
 </head>
 <body>
     Theme default
