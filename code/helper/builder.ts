@@ -36,9 +36,16 @@ export class Builder {
 
     async build(filePath: string) {
 
+        if(!this.fs.exists(filePath)) {
+            return;
+        }
         const fileBuildStartTime = new Date().getTime();
 
         const data = await this.getData(filePath);
+
+        if(data == null) {
+            return;
+        }
         //console.log('build', filePath, data.destination);
         // build the file
         const generated = await this.generate(data);
@@ -109,6 +116,9 @@ export class Builder {
         // read file content
         const fileContent = this.fs.read(filePath);
         // parse the content
+        if(fileContent == null) {
+            return null;
+        }
         let data = JSON.parse(fileContent);
         data.source = filePath;
         if (data.slug == null) {
