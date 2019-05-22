@@ -129,11 +129,15 @@ export class Builder {
         }
         // read file content
         const fileContent = this.fs.read(filePath);
+        const stats = this.fs.inspect(filePath, {
+            times: true
+        });
         // parse the content
         if(fileContent == null) {
             return null;
         }
         let data = JSON.parse(fileContent);
+        data.lastModified = new Date(stats.modifyTime);
         data.source = filePath;
         if (data.slug == null) {
             data.slug = this.path.toSlug(filePath);
