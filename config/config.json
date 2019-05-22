@@ -13,6 +13,7 @@
         "html-minifier",
         "sitemap"
     ],
+    "private": false,
     "config": {
         "slugWithTrailingSlash": true
     }
