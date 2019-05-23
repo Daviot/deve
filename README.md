@@ -1,4 +1,4 @@
-# deve
+# wyvr
 
 ## Folder structure
 
@@ -15,10 +15,10 @@ Contains all reuseable elements with logic.
 Contains all reusable code snippets without own logic.
 
 ### admin
-Contains the deve admin interface.
+Contains the wyvr admin interface.
 
 ### functions
-Contains the main functions of the deve generator.
+Contains the main functions of the wyvr generator.
 
 ### plugin
 Contains the installed plugins.
@@ -27,7 +27,7 @@ Contains the installed plugins.
 Here the generated content will be saved.
 
 ### code
-Contains the source code of deve, only available during development
+Contains the source code of wyvr, only available during development
 
 ### bin
-Contains the "compiled" source of deve from the folder deve
+Contains the "compiled" source of wyvr from the folder wyvr

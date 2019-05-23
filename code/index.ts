@@ -23,7 +23,7 @@ const hooks = new Hooks();
 const spinner = ora();
 let time = new Date();
 
-const logo = `${c.red.dim('<')}${c.red('deve')}${c.red.dim('>')}`;
+const logo = `${c.red.dim('<')}${c.red('wyvr')}${c.red.dim('>')}`;
 console.log(logo);
 
 // load the config

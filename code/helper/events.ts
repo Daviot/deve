@@ -4,22 +4,22 @@ export class Events {
             console.error('can not create events');
             return;
         }
-        if (!global.hasOwnProperty('deve')) {
-            //console.log('no deve');
-            (<any>global).deve = {};
+        if (!global.hasOwnProperty('wyvr')) {
+            //console.log('no wyvr');
+            (<any>global).wyvr = {};
         }
-        if (!(<any>global).deve.hasOwnProperty('events')) {
+        if (!(<any>global).wyvr.hasOwnProperty('events')) {
             //console.log('no events');
-            (<any>global).deve.events = {};
+            (<any>global).wyvr.events = {};
         }
         //console.log('events ready');
     }
     pub(name: string, data: any = null) {
         if (global && name) {
-            const keys = Object.keys((<any>global).deve.events);
+            const keys = Object.keys((<any>global).wyvr.events);
             const event = keys.find((k) => k === name);
             if (event) {
-                const methods = (<any>global).deve.events[name];
+                const methods = (<any>global).wyvr.events[name];
                 if (typeof methods == 'function') {
                     methods(data);
                 }
@@ -35,10 +35,10 @@ export class Events {
     }
     sub(name: string, callback: Function) {
         if (global && name) {
-            if(!(<any>global).deve.events[name]) {
-                (<any>global).deve.events[name] = [];
+            if(!(<any>global).wyvr.events[name]) {
+                (<any>global).wyvr.events[name] = [];
             }
-            (<any>global).deve.events[name].push(callback);
+            (<any>global).wyvr.events[name].push(callback);
         }
     }
     unsub() {}
