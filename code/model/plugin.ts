@@ -8,15 +8,17 @@ export class Plugin {
 }
 
 export class PluginFramework {
-    builder: any;
+    builder: PluginFrameworkBuilder;
     hooks: Hooks;
     events: Events;
-    fs: any;
-    constructor(hooks: Hooks, builder: Builder, events: Events, fs: FSJetpack) {
+    fs: PluginFrameworkFS;
+    config: PluginFrameworkConfig;
+    constructor(hooks: Hooks, builder: Builder, events: Events, fs: FSJetpack, config: any) {
         this.builder = new PluginFrameworkBuilder(builder);
         this.hooks = hooks;
         this.events = events;
         this.fs = new PluginFrameworkFS(fs);
+        this.config = new PluginFrameworkConfig(config);
     }
 }
 
@@ -36,5 +38,20 @@ export class PluginFrameworkFS {
     write(filePath: string, data: string) {
         //@todo check if write is in the current project folder not outside, security
         return this.fs.write(filePath, data);
+    }
+    getPath(filePath: string) {
+        if(filePath.indexOf('../') > -1) {
+            filePath = filePath.replace(/\.\.\//g, '');
+        }
+        return this.fs.path(`public/${filePath}`);
+    }
+}
+
+export class PluginFrameworkConfig {
+    constructor(private config: any) {
+
+    }
+    get(name: string) {
+        return this.config[name];
     }
 }
