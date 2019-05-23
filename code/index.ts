@@ -28,8 +28,8 @@ console.log(logo);
 
 // load the config
 let config: any = null;
-const configPath = 'config/config.json';
-const buildStartTime = new Date().getTime();
+const configPath = 'config/env.json';
+
 if (fs.exists(configPath) == 'file') {
     config = JSON.parse(fs.read(configPath));
 }

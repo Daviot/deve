@@ -10,6 +10,7 @@
     "watch": "tsc && node bin/code/index.js -w",
     "indexer": "tsc && node bin/code/index.js -i",
     "develop": "tsc && node bin/code/index.js -wb",
+    "development": "tsc && node bin/code/index.js --env=development",
     "clean": "rm -rf public && rm -rf indexes",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -23,6 +24,7 @@
     "ansi-colors": "^3.2.4",
     "chokidar": "^3.0.0",
     "command-line-args": "^5.1.1",
+    "deepmerge": "^3.2.0",
     "fs-jetpack": "^2.2.2",
     "glob": "^7.1.3",
     "handlebars": "^4.1.2",

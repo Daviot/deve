@@ -28,6 +28,10 @@ export class CLI {
         const { promisify } = require('util');
         this.glob = promisify(require('glob'));
 
+        this.c = require('ansi-colors');
+        this.indexer = new Indexer(this.fs);
+    }
+    startup() {
         const templateEngine = require('handlebars');
         // load the partials for the generator to use
         const partials = new Partials(this.fs);
@@ -35,10 +39,7 @@ export class CLI {
 
         const snippets = new Snippets(this.fs);
         snippets.load();
-
-        this.builder = new Builder(templateEngine, fs, partials, snippets, this.events, this.hooks, this.config);
-        this.c = require('ansi-colors');
-        this.indexer = new Indexer(fs);
+        this.builder = new Builder(templateEngine, this.fs, partials, snippets, this.events, this.hooks, this.config);
     }
     getDate(time: Date) {
         return time.toLocaleDateString();
@@ -63,6 +64,10 @@ export class CLI {
                     name: 'indexer',
                     alias: 'i',
                     type: Boolean
+                },
+                {
+                    name: 'env',
+                    type: String
                 }
             ]);
             config = new CliStartupConfiguration(args);
@@ -83,8 +88,28 @@ export class CLI {
         // if(!config.useStartupBuild && config.useIndexer) {
         //     config.useStartupBuild = true;
         // }
+
+        // set environment
+        if(config.environment != null) {
+            this.config.config.environment = config.environment;
+        }
+
+        // check if other environment is set and load it to override values from the default config
+        const merge = require('deepmerge');
+        if(this.config.config.environment != null) {
+            const envConfigPath = `config/env.${this.config.config.environment.toLowerCase()}.json`;
+            if (this.fs.exists(envConfigPath) == 'file') {
+                const envConfig = JSON.parse(this.fs.read(envConfigPath));
+                this.config = merge(this.config, envConfig);
+            }
+        }
+
         // store the config
         this.configArgs = config;
+
+        // start the cli correct with the new config
+        this.startup();
+
         return config;
     }
 

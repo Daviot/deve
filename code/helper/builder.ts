@@ -14,8 +14,10 @@ export class Builder {
         current: 0,
         amount: 0
     };
+    merge = require('deepmerge');
     constructor(private templateEngine: any, private fs: FSJetpack, private partials: Partials, private snippets: Snippets, private events: Events, private hooks: Hooks, private options: any) {
         this.path = new Path();
+
         /*this.events.sub('builder:process:set', (amount: number) => {
             this.process.amount = amount;
         });
@@ -56,7 +58,9 @@ export class Builder {
         const generated = await this.generate(data);
 
         // write the json data for debugging
-        this.fs.write(`${data.destination}.json`, data);
+        if(this.options.config.generatePublicJson) {
+            this.fs.write(`${data.destination}.json`, data);
+        }
         // write the generated tempalte
         this.fs.write(data.destination, generated);
         const fileBuildEndTime = new Date().getTime();
@@ -148,8 +152,8 @@ export class Builder {
         }
         data.destination = this.path.fromSlug(data.slug);
 
-        // etend with the filedata
-        const fileData = Object.assign(options, data);
+        // extend with the filedata
+        const fileData = this.merge(options, data);
 
         // create hook for plugins
         const hookedData = await this.hooks.call('builder:get-data#after', fileData);
