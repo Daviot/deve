@@ -9,6 +9,7 @@ import * as Minimatch from 'minimatch';
 import { Partials } from './partials';
 import { Snippets } from './snippets';
 import { Hooks } from '../model/hooks';
+import { PluginFramework } from '../model/plugin';
 
 export class CLI {
     spinner: any; // ora spinner
@@ -90,11 +91,12 @@ export class CLI {
     async start() {
         //load plugins based on the order in the config file
         const plugins = this.config.plugins;
+        const framework = new PluginFramework(this.hooks, this.builder, this.events, this.fs);
         if (plugins) {
             for (var i = 0, len = plugins.length; i < len; i++) {
                 const pluginName = plugins[i];
                 const pluginConstructor = await import(`../../plugins/${pluginName}/index`);
-                const plugin = new pluginConstructor.default(this.hooks);
+                const plugin = new pluginConstructor.default(framework);
             }
         }
 

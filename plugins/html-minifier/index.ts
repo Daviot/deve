@@ -1,12 +1,11 @@
 import { Hooks } from './../../code/model/hooks';
-import { Plugin } from '../../code/model/plugin';
+import { Plugin, PluginFramework } from '../../code/model/plugin';
 import { minify } from 'html-minifier';
 
 export default class HtmlMinifierPlugin extends Plugin {
-    constructor(private hooks: Hooks) {
-        super();
-
-        this.hooks.set('builder:generate#after', (source: string)=> {
+    constructor(wyver: PluginFramework) {
+        super(wyver);
+        wyver.hooks.set('builder:generate#after', (source: string)=> {
             return this.minify(source);
         });
     }
