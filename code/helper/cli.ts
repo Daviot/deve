@@ -21,6 +21,8 @@ export class CLI {
 
     countDown: number;
     files: any[] = [];
+    usage: any;
+    cliOptions: any[];
 
     constructor(private fs: FSJetpack, private events: Events, private hooks: Hooks, private config: any) {
         const ora = require('ora');
@@ -29,7 +31,40 @@ export class CLI {
         this.glob = promisify(require('glob'));
 
         this.c = require('ansi-colors');
+        this.usage = require('command-line-usage');
         this.indexer = new Indexer(this.fs);
+
+        this.cliOptions = [
+            {
+                name: 'build',
+                alias: 'b',
+                type: Boolean,
+                description: 'Build all files.'
+            },
+            {
+                name: 'watch',
+                alias: 'w',
+                type: Boolean,
+                description: 'Watches for changes and rebuild only effected files.'
+            },
+            {
+                name: 'indexer',
+                alias: 'i',
+                type: Boolean,
+                description: 'Recreates the assets, themes, partials and snippets index for the watch command.'
+            },
+            {
+                name: 'env',
+                type: String,
+                typeLabel: '{underline production|development}',
+                description: 'Which environment config file should be loaded, to override the default config.'
+            },
+            {
+                name: 'help',
+                type: Boolean,
+                description: 'Print this usage guide.'
+            }
+        ];
     }
     startup() {
         const templateEngine = require('handlebars');
@@ -49,27 +84,8 @@ export class CLI {
         let config = null;
         // possible options
         try {
-            const args = Args([
-                {
-                    name: 'watch',
-                    alias: 'w',
-                    type: Boolean
-                },
-                {
-                    name: 'build',
-                    alias: 'b',
-                    type: Boolean
-                },
-                {
-                    name: 'indexer',
-                    alias: 'i',
-                    type: Boolean
-                },
-                {
-                    name: 'env',
-                    type: String
-                }
-            ]);
+            const args = Args(this.cliOptions);
+
             config = new CliStartupConfiguration(args);
         } catch (ex) {
             if (ex) {
@@ -83,6 +99,13 @@ export class CLI {
         if (!config.useStartupBuild && !config.useWatcher && !config.useIndexer) {
             config.useStartupBuild = true;
         }
+        if (config.showHelp) {
+            config.useIndexer = false;
+            config.useStartupBuild = false;
+            config.useWatcher = false;
+            console.log(this.cliUsage());
+            process.exit();
+        }
         // @todo fix order of mode execution build is always first
         // indexer needs the startup build to generate the correct values
         // if(!config.useStartupBuild && config.useIndexer) {
@@ -90,13 +113,13 @@ export class CLI {
         // }
 
         // set environment
-        if(config.environment != null) {
+        if (this.config.environment != null) {
             this.config.config.environment = config.environment;
         }
 
         // check if other environment is set and load it to override values from the default config
         const merge = require('deepmerge');
-        if(this.config.config.environment != null) {
+        if (this.config.config.environment != null) {
             const envConfigPath = `config/env.${this.config.config.environment.toLowerCase()}.json`;
             if (this.fs.exists(envConfigPath) == 'file') {
                 const envConfig = JSON.parse(this.fs.read(envConfigPath));
@@ -111,6 +134,41 @@ export class CLI {
         this.startup();
 
         return config;
+    }
+
+    cliUsage() {
+        const sections = [
+            {
+                content: '{italic Static Site Builder} with {italic CMS functionality}'
+            },
+            {
+                header: 'Options',
+                optionList: this.cliOptions
+            },
+            {
+                header: 'Examples',
+                content: [
+                    {
+                        desc: 'Build',
+                        example: '$ wyvr --build'
+                    },
+                    {
+                        desc: 'Watch',
+                        example: '$ wyvr --watch'
+                    },
+                    {
+                        desc: 'Build then index and then watch for changes',
+                        example: '$ wyvr -wib'
+                    },
+                    {
+                        desc: 'Change environment to development',
+                        example: '$ wyvr --env=development'
+                    }
+                ]
+            }
+        ];
+        const usage = this.usage(sections);
+        return usage;
     }
 
     async start() {
@@ -172,9 +230,9 @@ export class CLI {
         if (this.configArgs.useStartupBuild && callback && typeof callback == 'function') {
             this.builder.prepare();
 
-            this.events.sub('builder:build:done', async (data:any) => {
+            this.events.sub('builder:build:done', async (data: any) => {
                 this.countDown--;
-                if(this.countDown > 0) {
+                if (this.countDown > 0) {
                     this.spinner.text = `${this.countDown + 1} files to process`;
                     this.files.push(data);
                     return;
@@ -190,7 +248,7 @@ export class CLI {
             let files = await this.glob('content/**/*.json');
             const hookedFiles = await this.hooks.call('builder#before', files);
 
-            if(hookedFiles) {
+            if (hookedFiles) {
                 files = hookedFiles;
             }
 
@@ -206,7 +264,6 @@ export class CLI {
                 await callback(this.builder, filePath);
             });
             this.countDown = files.length;
-
 
             //this.spinner.succeed('Build complete');
             //const resultFiles = await this.hooks.call('builder#after', files);
