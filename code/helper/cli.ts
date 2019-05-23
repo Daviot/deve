@@ -177,9 +177,13 @@ export class CLI {
         const framework = new PluginFramework(this.hooks, this.builder, this.events, this.fs, this.config);
         if (plugins) {
             for (var i = 0, len = plugins.length; i < len; i++) {
+                try {
                 const pluginName = plugins[i];
                 const pluginConstructor = await import(`../../plugins/${pluginName}/index`);
                 const plugin = new pluginConstructor.default(framework);
+                } catch(e) {
+                    console.log(`can't load plugin "${plugins[i]}"`)
+                }
             }
         }
 
