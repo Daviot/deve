@@ -31,6 +31,7 @@ const logger = new Logger(fs, buildId);
 const logo = `${c.red.dim('<')}${c.red('wyvr')}${c.red.dim('>')}`;
 console.log(logo);
 console.log(c.dim('build'), buildId);
+console.log(c.dim('log'), logger.getPath())
 logger.debug(null, '<wyvr>', `build ${buildId}`);
 
 // load the config

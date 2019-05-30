@@ -1,10 +1,15 @@
 import { FSJetpack } from 'fs-jetpack/types';
+import { pathToFileURL } from 'url';
 export class Logger {
     path: string;
     color: any;
     constructor(private fs: FSJetpack, id: number) {
         this.path = `${this.fs.cwd()}/log/${id || 'wyvr'}.log`;
         this.color = require('ansi-colors');
+    }
+
+    getPath() {
+        return this.path;
     }
 
     log(level: LogLevel, context: any, ...data: any[]) {
@@ -17,7 +22,7 @@ export class Logger {
         if(context) {
             name = context;
             if(context.constructor && context.constructor.name) {
-                name = context.constructor.name;
+                name = `@${context.constructor.name}`;
             }
         }
 
