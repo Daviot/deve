@@ -15,36 +15,38 @@ const glob = promisify(require('glob'));
 const ora = require('ora');
 const c = require('ansi-colors');
 
-const events = new Events();
+const logger = new Logger(fs, null); //@todo add buildId as second parameter to generate different logs
+
+const events = new Events(logger);
 
 const path = new Path();
 
-const hooks = new Hooks();
+const hooks = new Hooks(logger);
 
 const spinner = ora();
 let time = new Date();
 
+// generate uniq build id to make apply them to build
 const buildId = Math.floor((1 + Math.random()) * 0x100000);
 
-const logger = new Logger(fs, buildId);
 
 const logo = `${c.red.dim('<')}${c.red('wyvr')}${c.red.dim('>')}`;
 console.log(logo);
 console.log(c.dim('build'), buildId);
-console.log(c.dim('log'), logger.getPath())
-logger.debug(null, '<wyvr>', `build ${buildId}`);
+console.log(c.dim('log'), logger.getPath());
+logger.info('wyvr', `build ${buildId}`);
 
 // load the config
 let config: any = null;
 const configPath = 'config/env.json';
 
-if (fs.exists(configPath) != 'file') {
-    logger.error(null, 'missing config');
+if (!fs.exists(configPath)) {
+    logger.error('wyvr', 'missing config');
     process.exit();
 }
-    config = JSON.parse(fs.read(configPath));
-    logger.debug(null, 'config', config);
-    config.build = buildId;
+config = JSON.parse(fs.read(configPath));
+logger.debug('wyvr', 'config', config);
+config.build = buildId;
 
 const cli = new CLI(fs, events, hooks, logger, config);
 
@@ -52,26 +54,26 @@ const cli = new CLI(fs, events, hooks, logger, config);
 const configArgs = cli.loadArguments();
 // spinner.start(`${c.dim(`[${cli.getDate(time)}] `)}Waiting for changes`);
 // setTimeout(()=> {
-    //     spinner.info('Changes detected');
-    //     spinner.start('Building');
-    // }, 2000);
-    // setTimeout(()=> {
-        //     spinner.succeed('Builded succeeded');
-        // }, 4000);
+//     spinner.info('Changes detected');
+//     spinner.start('Building');
+// }, 2000);
+// setTimeout(()=> {
+//     spinner.succeed('Builded succeeded');
+// }, 4000);
 
-        // read values from gitignore
-        let ignore = fs
-        .read('.gitignore')
-        .split('\n')
-        .filter((entry) => entry != '');
-        // add git for ignoring
-        ignore.push('.git');
-        logger.debug(null, 'ignored', ignore);
+// read values from gitignore
+let ignore = fs
+    .read('.gitignore')
+    .split('\n')
+    .filter((entry) => entry != '');
+// add git for ignoring
+ignore.push('.git');
+logger.info('wyvr', 'ignored', ignore);
 
-        events.pub('prepare:end');
+events.pub('prepare:end');
 
-        // init startupbuild
-        events.sub('build:start', async () => {
+// init startupbuild
+events.sub('build:start', async () => {
     await cli.startBuild(ignore, async (builder: Builder, filePath: string) => {
         await builder.build(filePath);
     });
@@ -89,6 +91,7 @@ events.sub('indexer:start', async () => {
 
 //console.log('configArgs', configArgs)
 if (configArgs == null) {
+    logger.error('wyvr', 'no config arguments available');
     process.exit();
 }
 

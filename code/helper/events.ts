@@ -1,5 +1,6 @@
+import { Logger } from './logger';
 export class Events {
-    constructor() {
+    constructor(private logger: Logger) {
         if (!global) {
             console.error('can not create events');
             return;
@@ -21,9 +22,11 @@ export class Events {
             if (event) {
                 const methods = (<any>global).wyvr.events[name];
                 if (typeof methods == 'function') {
+                    this.logger.debug(this, `publish event "${name}" with 1 event subscriber`);
                     methods(data);
                 }
                 if (typeof methods == 'object' && methods.length > 0) {
+                    this.logger.debug(this, `publish event "${name}" with ${methods.length} event subscribers`);
                     methods.map((m: Function) => {
                         if (typeof m == 'function') {
                             m(data);
@@ -35,6 +38,7 @@ export class Events {
     }
     sub(name: string, callback: Function) {
         if (global && name) {
+            this.logger.debug(this, `subscribe to event "${name}"`);
             if(!(<any>global).wyvr.events[name]) {
                 (<any>global).wyvr.events[name] = [];
             }

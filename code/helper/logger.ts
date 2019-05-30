@@ -5,6 +5,9 @@ export class Logger {
     color: any;
     constructor(private fs: FSJetpack, id: number) {
         this.path = `${this.fs.cwd()}/log/${id || 'wyvr'}.log`;
+        if(this.fs.exists(this.path)) {
+            this.fs.remove(this.path);
+        }
         this.color = require('ansi-colors');
     }
 
@@ -19,23 +22,27 @@ export class Logger {
         const iconColor = this.getLevelIconColor(level);
         const timestamp = this.getTimestamp();
         let name = '';
-        if(context) {
-            name = context;
-            if(context.constructor && context.constructor.name) {
+        if (context) {
+            name = `@${context}`;
+            if ((typeof context == 'function' || typeof context == 'object') && context.constructor && context.constructor.name) {
                 name = `@${context.constructor.name}`;
             }
         }
 
-
-        const dataConverted = data.map((entry) => {
-            return `${JSON.stringify(entry)}`;
-        }).join('\n');
-        // console.log(`${iconColor} ${this.color.dim(timestamp)} ${this.getLevelColor(level, name
-        //     )}`);
-        // console.log(dataConverted);
-        this.fs.append(this.path, `${icon} ${timestamp} ${name}\n`);
+        const dataConverted = data
+            .map((entry) => {
+                switch (typeof entry) {
+                    case 'string':
+                    case 'number':
+                        return entry;
+                    default:
+                        return `${JSON.stringify(entry, null, '  ')}`;
+                }
+            })
+            .join('\n');
+        this.fs.append(this.path, `[${timestamp}] ${icon} ${name}\n`);
         this.fs.append(this.path, `${dataConverted}\n`);
-        }
+    }
 
     debug(context: any, ...data: any[]) {
         this.log(LogLevel.debug, context, ...data);
@@ -51,12 +58,21 @@ export class Logger {
     }
     getTimestamp() {
         const date = new Date();
-        return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
+        return `${date
+            .getHours()
+            .toString()
+            .padStart(2, '0')}:${date
+            .getMinutes()
+            .toString()
+            .padStart(2, '0')}:${date
+            .getSeconds()
+            .toString()
+            .padStart(2, '0')}`;
     }
     getLevelIcon(level: LogLevel) {
         switch (level) {
             case LogLevel.debug:
-                return '>_';
+                return '(#)';
             case LogLevel.info:
                 return '(i)';
             case LogLevel.warn:

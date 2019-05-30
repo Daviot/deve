@@ -1,6 +1,7 @@
+import { Logger } from './../helper/logger';
 export class Hooks {
 
-    constructor() {
+    constructor(private logger: Logger) {
         (<any>global).hooks = {};
     }
 

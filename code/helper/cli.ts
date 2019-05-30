@@ -1,3 +1,4 @@
+import { LogLevel, Logger } from './logger';
 import { Indexer } from './indexer';
 import { Builder } from './builder';
 import { FSJetpack } from 'fs-jetpack/types';
@@ -10,6 +11,7 @@ import { Partials } from './partials';
 import { Snippets } from './snippets';
 import { Hooks } from '../model/hooks';
 import { PluginFramework } from '../model/plugin';
+import { Assets } from './assets';
 
 export class CLI {
     spinner: any; // ora spinner
@@ -23,8 +25,9 @@ export class CLI {
     files: any[] = [];
     usage: any;
     cliOptions: any[];
+    assets: Assets;
 
-    constructor(private fs: FSJetpack, private events: Events, private hooks: Hooks, private config: any) {
+    constructor(private fs: FSJetpack, private events: Events, private hooks: Hooks, private logger: Logger, private config: any) {
         const ora = require('ora');
         this.spinner = ora();
         const { promisify } = require('util');
@@ -33,6 +36,7 @@ export class CLI {
         this.c = require('ansi-colors');
         this.usage = require('command-line-usage');
         this.indexer = new Indexer(this.fs);
+        this.assets = new Assets(this.fs, this.hooks);
 
         this.cliOptions = [
             {
@@ -74,10 +78,7 @@ export class CLI {
 
         const snippets = new Snippets(this.fs);
         snippets.load();
-        this.builder = new Builder(templateEngine, this.fs, partials, snippets, this.events, this.hooks, this.config);
-    }
-    getDate(time: Date) {
-        return time.toLocaleDateString();
+        this.builder = new Builder(templateEngine, this.fs, partials, snippets, this.events, this.hooks, this.assets, this.logger, this.config);
     }
 
     loadArguments(): CliStartupConfiguration {
@@ -85,12 +86,16 @@ export class CLI {
         // possible options
         try {
             const args = Args(this.cliOptions);
+            this.logger.debug(this, 'cli arguments', args);
 
             config = new CliStartupConfiguration(args);
+            this.logger.debug(this, 'startup arguments', config);
         } catch (ex) {
             if (ex) {
                 if (ex.optionName != null) {
-                    console.error(`unknown option "${ex.optionName}"`);
+                    this.logger.error(this, `unknown option "${ex.optionName}"`);
+                } else {
+                    this.logger.error(this, ex);
                 }
             }
             return;
@@ -98,13 +103,13 @@ export class CLI {
         // fallback when nothing is active start build
         if (!config.useStartupBuild && !config.useWatcher && !config.useIndexer) {
             config.useStartupBuild = true;
+            this.logger.debug(this, 'force startup build');
         }
         if (config.showHelp) {
             config.useIndexer = false;
             config.useStartupBuild = false;
             config.useWatcher = false;
             console.log(this.cliUsage());
-            process.exit();
         }
         // @todo fix order of mode execution build is always first
         // indexer needs the startup build to generate the correct values
@@ -115,6 +120,7 @@ export class CLI {
         // set environment
         if (this.config.environment != null) {
             this.config.config.environment = config.environment;
+            this.logger.info(this, 'environment', this.config.config.environment);
         }
 
         // check if other environment is set and load it to override values from the default config
@@ -124,6 +130,7 @@ export class CLI {
             if (this.fs.exists(envConfigPath) == 'file') {
                 const envConfig = JSON.parse(this.fs.read(envConfigPath));
                 this.config = merge(this.config, envConfig);
+                this.logger.debug(this, 'environment config', this.config);
             }
         }
 
@@ -178,11 +185,11 @@ export class CLI {
         if (plugins) {
             for (var i = 0, len = plugins.length; i < len; i++) {
                 try {
-                const pluginName = plugins[i];
-                const pluginConstructor = await import(`../../plugins/${pluginName}/index`);
-                const plugin = new pluginConstructor.default(framework);
-                } catch(e) {
-                    console.log(`can't load plugin "${plugins[i]}"`)
+                    const pluginName = plugins[i];
+                    const pluginConstructor = await import(`../../plugins/${pluginName}/index`);
+                    const plugin = new pluginConstructor.default(framework);
+                } catch (e) {
+                    this.logger.warn(this, `can't load plugin "${plugins[i]}"`);
                 }
             }
         }
@@ -208,6 +215,7 @@ export class CLI {
             this.spinner.start('Waiting for changes');
             watcher.on('all', async (event, file: string) => {
                 console.log('watch', file, event);
+                this.logger.debug(this, file, event);
                 const isNotIgnored = ignore.find((ignore: string) => Minimatch(file, ignore)) == null;
 
                 if (isNotIgnored) {
@@ -215,6 +223,7 @@ export class CLI {
                     // watch themes, pages, partials and snippets
                     if (Minimatch(file, 'theme/**/*') || Minimatch(file, 'partials/**/*') || Minimatch(file, 'snippets/**/*') || Minimatch(file, 'content/**/*.hbs')) {
                         const indexes = this.indexer.getIndex(file);
+                        this.logger.debug(this, `indexes of "${file}"`, indexes);
                         // build all files which are depending on this theme
                         indexes.map(async (file: string) => {
                             await callback(this.builder, file);
@@ -225,6 +234,8 @@ export class CLI {
                         await callback(this.builder, file);
                     }
                     this.spinner.start('Waiting for changes');
+                } else {
+                    this.logger.debug(this, `"${file}" is ignored`);
                 }
             });
         }
@@ -242,14 +253,16 @@ export class CLI {
                     return;
                 }
                 this.spinner.succeed('Build complete');
+                this.logger.info(this, 'build complete');
                 const resultFiles = await this.hooks.call('builder#after', this.files);
             });
             // this.events.sub('builder:process:increment', () => {
-            //     const proc = this.builder.getProcess();
-            //     this.spinner.text = `Building ${proc.percent}% ${this.c.dim(`${proc.current}/${proc.amount}`)}`;
-            // });
-            this.spinner.start('Building');
-            let files = await this.glob('content/**/*.json');
+                //     const proc = this.builder.getProcess();
+                //     this.spinner.text = `Building ${proc.percent}% ${this.c.dim(`${proc.current}/${proc.amount}`)}`;
+                // });
+                this.spinner.start('Building');
+                let files = await this.glob('content/**/*.json');
+                this.logger.debug(this, 'files to build');
             const hookedFiles = await this.hooks.call('builder#before', files);
 
             if (hookedFiles) {
