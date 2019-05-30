@@ -8,6 +8,7 @@ import { InspectResult } from 'fs-jetpack/types';
 import { Path } from './helper/path';
 import { Events } from './helper/events';
 import * as chokidar from 'chokidar';
+import { Logger } from './helper/logger';
 
 const { promisify } = require('util');
 const glob = promisify(require('glob'));
@@ -23,42 +24,53 @@ const hooks = new Hooks();
 const spinner = ora();
 let time = new Date();
 
+const buildId = Math.floor((1 + Math.random()) * 0x100000);
+
+const logger = new Logger(fs, buildId);
+
 const logo = `${c.red.dim('<')}${c.red('wyvr')}${c.red.dim('>')}`;
 console.log(logo);
+console.log(c.dim('build'), buildId);
+logger.debug(null, '<wyvr>', `build ${buildId}`);
 
 // load the config
 let config: any = null;
 const configPath = 'config/env.json';
 
-if (fs.exists(configPath) == 'file') {
-    config = JSON.parse(fs.read(configPath));
+if (fs.exists(configPath) != 'file') {
+    logger.error(null, 'missing config');
+    process.exit();
 }
+    config = JSON.parse(fs.read(configPath));
+    logger.debug(null, 'config', config);
+    config.build = buildId;
 
-const cli = new CLI(fs, events, hooks, config);
+const cli = new CLI(fs, events, hooks, logger, config);
 
 // load the arguments from the commandline
 const configArgs = cli.loadArguments();
 // spinner.start(`${c.dim(`[${cli.getDate(time)}] `)}Waiting for changes`);
 // setTimeout(()=> {
-//     spinner.info('Changes detected');
-//     spinner.start('Building');
-// }, 2000);
-// setTimeout(()=> {
-//     spinner.succeed('Builded succeeded');
-// }, 4000);
+    //     spinner.info('Changes detected');
+    //     spinner.start('Building');
+    // }, 2000);
+    // setTimeout(()=> {
+        //     spinner.succeed('Builded succeeded');
+        // }, 4000);
 
-// read values from gitignore
-let ignore = fs
-    .read('.gitignore')
-    .split('\n')
-    .filter((entry) => entry != '');
-// add git for ignoring
-ignore.push('.git');
+        // read values from gitignore
+        let ignore = fs
+        .read('.gitignore')
+        .split('\n')
+        .filter((entry) => entry != '');
+        // add git for ignoring
+        ignore.push('.git');
+        logger.debug(null, 'ignored', ignore);
 
-events.pub('prepare:end');
+        events.pub('prepare:end');
 
-// init startupbuild
-events.sub('build:start', async () => {
+        // init startupbuild
+        events.sub('build:start', async () => {
     await cli.startBuild(ignore, async (builder: Builder, filePath: string) => {
         await builder.build(filePath);
     });
