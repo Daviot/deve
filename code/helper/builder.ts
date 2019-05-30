@@ -1,3 +1,4 @@
+import { Logger } from './logger';
 import { Events } from './events';
 import { Snippets } from './snippets';
 import { FSJetpack } from 'fs-jetpack/types';
@@ -5,6 +6,7 @@ import { Path } from './path';
 import * as Handlebars from 'handlebars';
 import { Partials } from './partials';
 import { Hooks } from '../model/hooks';
+import { Assets } from './assets';
 
 export class Builder {
     template: string = '';
@@ -15,7 +17,17 @@ export class Builder {
         amount: 0
     };
     merge = require('deepmerge');
-    constructor(private templateEngine: any, private fs: FSJetpack, private partials: Partials, private snippets: Snippets, private events: Events, private hooks: Hooks, private options: any) {
+    constructor(
+        private templateEngine: any,
+        private fs: FSJetpack,
+        private partials: Partials,
+        private snippets: Snippets,
+        private events: Events,
+        private hooks: Hooks,
+        private assets: Assets,
+        private logger: Logger,
+        private options: any
+    ) {
         this.path = new Path();
 
         /*this.events.sub('builder:process:set', (amount: number) => {
@@ -39,36 +51,40 @@ export class Builder {
     async build(filePath: string) {
         const hookedFilePath = await this.hooks.call('builder:build#before', filePath);
 
-        if(hookedFilePath) {
+        if (hookedFilePath) {
             filePath = hookedFilePath;
         }
 
-        if(!this.fs.exists(filePath)) {
+        if (!this.fs.exists(filePath)) {
             return null;
         }
         const fileBuildStartTime = new Date().getTime();
 
         let data = await this.getData(filePath);
 
-        if(data == null) {
+        if (data == null) {
             return null;
         }
         //console.log('build', filePath, data.destination);
+        // replace and handle assets
+        data = await this.assets.load(data);
+
         // build the file
         const generated = await this.generate(data);
 
         // write the json data for debugging
-        if(this.options.config.generatePublicJson) {
+        if (this.options.config.generatePublicJson) {
             this.fs.write(`${data.destination}.json`, data);
         }
         // write the generated tempalte
         this.fs.write(data.destination, generated);
         const fileBuildEndTime = new Date().getTime();
         data.buildTime = fileBuildEndTime - fileBuildStartTime;
+        this.logger.info(this, `"${filePath}" build time ${data.buildTime}`);
 
         const hookedData = await this.hooks.call('builder:build#after', data);
 
-        if(hookedData) {
+        if (hookedData) {
             data = hookedData;
         }
         this.events.pub('builder:build:done', data);
@@ -105,7 +121,7 @@ export class Builder {
 
         return html;
     }
-    loadPage(data: any) {
+    async loadPage(data: any) {
         if (data == null) {
             return null;
         }
@@ -120,7 +136,7 @@ export class Builder {
             return data.body;
         }
         let body = this.fs.read(path);
-        body = this.compile(body, data);
+        body = await this.compile(body, data);
         return body;
     }
 
@@ -128,7 +144,7 @@ export class Builder {
         // make a clone of the default options
         let options = JSON.parse(JSON.stringify(this.options));
         const hookedOptions = await this.hooks.call('builder:get-data#before', options);
-        if(hookedOptions) {
+        if (hookedOptions) {
             options = hookedOptions;
         }
         // read file content
@@ -137,7 +153,7 @@ export class Builder {
             times: true
         });
         // parse the content
-        if(fileContent == null) {
+        if (fileContent == null) {
             return null;
         }
         let data = JSON.parse(fileContent);
@@ -147,7 +163,7 @@ export class Builder {
             data.slug = this.path.toSlug(filePath);
         }
         // force that slugs start with a /
-        if(data.slug.indexOf('/') != 0) {
+        if (data.slug.indexOf('/') != 0) {
             data.slug = `/${data.slug}`;
         }
         data.destination = this.path.fromSlug(data.slug);
@@ -158,7 +174,7 @@ export class Builder {
         // create hook for plugins
         const hookedData = await this.hooks.call('builder:get-data#after', fileData);
 
-        if(hookedData) {
+        if (hookedData) {
             return hookedData;
         }
         return fileData;
@@ -167,7 +183,7 @@ export class Builder {
     async generate(data: any) {
         const hookedData = await this.hooks.call('builder:generate#before', data);
 
-        if(hookedData) {
+        if (hookedData) {
             data = hookedData;
         }
         // load the page template
@@ -182,27 +198,30 @@ export class Builder {
         }
 
         // check if the file has a page file defined to extend the body
-        data.body = this.loadPage(data);
+        data.body = await this.loadPage(data);
 
         // replace the template with the data
-        source = this.compile(source, data);
+        source = await this.compile(source, data);
         // compile the templates from the data itself
-        source = this.compile(source, data);
+        source = await this.compile(source, data);
 
         // create hook for plugins
         const hookedSource = await this.hooks.call('builder:generate#after', source);
 
-        if(hookedSource) {
+        if (hookedSource) {
             source = hookedSource;
         }
         return source;
     }
 
-    compile(source: string, data: any) {
+    async compile(source: string, data: any) {
         let template = this.templateEngine.compile(source);
         let compiledSource = template(data);
         if (data.snippets) {
-            return this.snippets.replace(compiledSource, data.snippets, data.source);
+            compiledSource = this.snippets.replace(compiledSource, data.snippets, data.source);
+        }
+        if (data.assets) {
+            compiledSource = await this.assets.replace(compiledSource, data.assets);
         }
         return compiledSource;
     }

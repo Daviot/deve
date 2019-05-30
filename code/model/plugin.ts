@@ -24,8 +24,8 @@ export class PluginFramework {
 
 export class PluginFrameworkBuilder {
     constructor(private builder: Builder) {}
-    compile(source: string, data: any) {
-        return this.builder.compile(source, data);
+    async compile(source: string, data: any) {
+        return await this.builder.compile(source, data);
     }
 }
 export class PluginFrameworkFS {

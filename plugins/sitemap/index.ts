@@ -27,7 +27,7 @@ export default class SitemapPlugin extends Plugin {
     </url>
     {{/each}}
 </urlset>`;
-            const sitemapContent = wyvr.builder.compile(sitemapFileTemplate, { files: publicFiles });
+            const sitemapContent = await wyvr.builder.compile(sitemapFileTemplate, { files: publicFiles });
 
             wyvr.fs.write(wyvr.fs.getPath('sitemap.xml'), sitemapContent);
 
