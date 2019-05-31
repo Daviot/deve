@@ -3,19 +3,51 @@ import { pathToFileURL } from 'url';
 export class Logger {
     path: string;
     color: any;
+    level: LogLevel;
     constructor(private fs: FSJetpack, id: number) {
         this.path = `${this.fs.cwd()}/log/${id || 'wyvr'}.log`;
         if(this.fs.exists(this.path)) {
             this.fs.remove(this.path);
         }
         this.color = require('ansi-colors');
+        this.level = LogLevel.debug;
     }
 
     getPath() {
         return this.path;
     }
 
+    setLevel(level: string|number) {
+        const levels = LogLevel;
+        let logLevel: number = null;
+        if(typeof level == 'string') {
+            logLevel = (<any>levels)[level];
+        } else {
+            logLevel = level;
+        }
+        if(levels[logLevel] != null) {
+            this.level = logLevel;
+            this.writeLog(`set log level to "${levels[this.level]}"`);
+        }
+    }
+    validate(level: LogLevel) {
+        if(isNaN(parseInt((<any>level).toString()))) {
+            const levels = LogLevel;
+            level = (<any>levels)[level];
+        }
+        if((<number>level) >= this.level) {
+            return true;
+        }
+        return false;
+    }
+    private writeLog(content: string) {
+        this.fs.append(this.path, `${content}\n`);
+    }
+
     log(level: LogLevel, context: any, ...data: any[]) {
+        if(!this.validate(level)) {
+            return;
+        }
         // console.log(context);
         // console.log(data);
         const icon = this.getLevelIcon(level);
@@ -40,8 +72,9 @@ export class Logger {
                 }
             })
             .join('\n');
-        this.fs.append(this.path, `[${timestamp}] ${icon} ${name}\n`);
-        this.fs.append(this.path, `${dataConverted}\n`);
+
+        this.writeLog(`[${timestamp}] ${icon} ${name}`);
+        this.writeLog(dataConverted);
     }
 
     debug(context: any, ...data: any[]) {
