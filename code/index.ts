@@ -45,7 +45,6 @@ if (!fs.exists(configPath)) {
     process.exit();
 }
 config = JSON.parse(fs.read(configPath));
-logger.debug('wyvr', 'config', config);
 config.build = buildId;
 
 const cli = new CLI(fs, events, hooks, logger, config);
