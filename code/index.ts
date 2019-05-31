@@ -11,8 +11,6 @@ import * as chokidar from 'chokidar';
 import { Logger } from './helper/logger';
 
 const { promisify } = require('util');
-const glob = promisify(require('glob'));
-const ora = require('ora');
 const c = require('ansi-colors');
 
 const logger = new Logger(fs, null); //@todo add buildId as second parameter to generate different logs
@@ -22,9 +20,6 @@ const events = new Events(logger);
 const path = new Path();
 
 const hooks = new Hooks(logger);
-
-const spinner = ora();
-let time = new Date();
 
 // generate uniq build id to make apply them to build
 const buildId = Math.floor((1 + Math.random()) * 0x100000);
