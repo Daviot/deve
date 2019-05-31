@@ -11,8 +11,8 @@
     "indexer": "tsc && node bin/code/index.js -i",
     "develop": "tsc && node bin/code/index.js -wb",
     "help": "tsc && node bin/code/index.js --help",
-    "development": "tsc && node bin/code/index.js --env=development",
-    "clean": "rm -rf public && rm -rf indexes",
+    "development": "tsc && node bin/code/index.js -b --env=development",
+    "clean": "rm -rf public && rm -rf indexes && rm -rf log",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Daviot <daviot@live.at>",
@@ -33,6 +33,7 @@
     "html-minifier": "^4.0.0",
     "minimatch": "^3.0.4",
     "ora": "^3.4.0",
+    "sharp": "^0.22.1",
     "typescript": "^3.4.5"
   },
   "devDependencies": {},
