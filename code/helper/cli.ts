@@ -83,13 +83,12 @@ export class CLI {
 
     loadArguments(): CliStartupConfiguration {
         let config = null;
+        let args = null;
         // possible options
         try {
-            const args = Args(this.cliOptions);
-            this.logger.debug(this, 'cli arguments', args);
+            args = Args(this.cliOptions);
 
             config = new CliStartupConfiguration(args);
-            this.logger.debug(this, 'startup arguments', config);
         } catch (ex) {
             if (ex) {
                 if (ex.optionName != null) {
@@ -100,11 +99,32 @@ export class CLI {
             }
             return;
         }
+        // set environment
+        if (this.config.config.environment != null) {
+            this.config.config.environment = config.environment;
+            this.logger.info(this, 'environment', this.config.config.environment);
+        }
+        // check if other environment is set and load it to override values from the default config
+        const merge = require('deepmerge');
+        if (this.config.config.environment != null) {
+            const envConfigPath = `config/env.${this.config.config.environment.toLowerCase()}.json`;
+            if (this.fs.exists(envConfigPath) == 'file') {
+                const envConfig = JSON.parse(this.fs.read(envConfigPath));
+                this.config = merge(this.config, envConfig);
+            }
+        }
+        // set the custom log level
+        this.logger.setLevel(this.config.config.log);
+
         // fallback when nothing is active start build
         if (!config.useStartupBuild && !config.useWatcher && !config.useIndexer) {
             config.useStartupBuild = true;
             this.logger.debug(this, 'force startup build');
         }
+        this.logger.debug(this, 'cli arguments', args);
+        this.logger.debug(this, 'startup arguments', config);
+        this.logger.debug(this, 'environment config', this.config);
+
         if (config.showHelp) {
             config.useIndexer = false;
             config.useStartupBuild = false;
@@ -116,23 +136,6 @@ export class CLI {
         // if(!config.useStartupBuild && config.useIndexer) {
         //     config.useStartupBuild = true;
         // }
-
-        // set environment
-        if (this.config.environment != null) {
-            this.config.config.environment = config.environment;
-            this.logger.info(this, 'environment', this.config.config.environment);
-        }
-
-        // check if other environment is set and load it to override values from the default config
-        const merge = require('deepmerge');
-        if (this.config.config.environment != null) {
-            const envConfigPath = `config/env.${this.config.config.environment.toLowerCase()}.json`;
-            if (this.fs.exists(envConfigPath) == 'file') {
-                const envConfig = JSON.parse(this.fs.read(envConfigPath));
-                this.config = merge(this.config, envConfig);
-                this.logger.debug(this, 'environment config', this.config);
-            }
-        }
 
         // store the config
         this.configArgs = config;
