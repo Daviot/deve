@@ -29,7 +29,9 @@ export class CLI {
 
     constructor(private fs: FSJetpack, private events: Events, private hooks: Hooks, private logger: Logger, private config: any) {
         const ora = require('ora');
-        this.spinner = ora();
+        this.spinner = ora({
+            color: 'red'
+        });
         const { promisify } = require('util');
         this.glob = promisify(require('glob'));
 
