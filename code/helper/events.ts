@@ -22,14 +22,14 @@ export class Events {
             if (event) {
                 const methods = (<any>global).wyvr.events[name];
                 if (typeof methods == 'function') {
-                    this.logger.debug(this, `publish event "${name}" with 1 event subscriber`);
+                    this.logger.debug(this, `publish event "${name}"`);
                     methods(data);
                 }
                 if (typeof methods == 'object' && methods.length > 0) {
                     this.logger.debug(this, `publish event "${name}" with ${methods.length} event subscribers`);
-                    methods.map((m: Function) => {
-                        if (typeof m == 'function') {
-                            m(data);
+                    methods.map((method: Function) => {
+                        if (typeof method == 'function') {
+                            method(data);
                         }
                     });
                 }
