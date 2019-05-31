@@ -102,7 +102,7 @@ export class CLI {
         // set environment
         if (this.config.config.environment != null) {
             this.config.config.environment = config.environment;
-            this.logger.info(this, 'environment', this.config.config.environment);
+            this.logger.info(this, `environment "${this.config.config.environment}"`);
         }
         // check if other environment is set and load it to override values from the default config
         const merge = require('deepmerge');
