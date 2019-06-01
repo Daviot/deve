@@ -85,7 +85,7 @@ export class Assets {
             source = beforeHookedSource;
         }
         if (assets && assets.length > 0) {
-            await assets.map(async (asset: any) => {
+            await Promise.all(assets.map(async (asset: any) => {
                 const assetData = this.get(assets, asset.name);
                 // list all occuring matches inside the source
                 const matches = source.match(new RegExp(`\\(\\(\\s*?(${asset.name}.*?)\\)\\)`, 'gi'));
@@ -95,22 +95,24 @@ export class Assets {
                 }
                 this.logger.debug(this, `asset "${assetData.name}" found`, matches);
                 // search and replace every match
-                await matches.map(async (match) => {
-                    // prepare the match because "((asset))" can not be used as regex
-                    const regexMatchPattern = match.replace(/\(/g, '\\(').replace(/\)/g, '\\)');
-                    const matchKey = match
-                        .replace(/\(/g, '')
-                        .replace(/\)/g, '')
-                        .trim();
+                await Promise.all(
+                    matches.map(async (match) => {
+                        // prepare the match because "((asset))" can not be used as regex
+                        const regexMatchPattern = match.replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+                        const matchKey = match
+                            .replace(/\(/g, '')
+                            .replace(/\)/g, '')
+                            .trim();
 
-                    // get the content to replace
-                    const content = await this.replaceContent(matchKey, assetData);
+                        // get the content to replace
+                        const content = await this.replaceContent(matchKey, assetData);
 
-                    // replace the new content with the placeholder
-                    source = source.replace(new RegExp(regexMatchPattern, 'gi'), content);
-                });
+                        // replace the new content with the placeholder
+                        source = source.replace(new RegExp(regexMatchPattern, 'gi'), content);
+                    })
+                );
                 this.logger.debug(this, source);
-            });
+            }));
         }
         const afterHookedSource = await this.hooks.call('builder:assets:replace#after', source);
         if (afterHookedSource) {
@@ -143,6 +145,10 @@ export class Assets {
         if (!data) {
             return '';
         }
+        let src = data,
+            options = {
+                // default config of the assets
+            };
         if (typeof data == 'object') {
             const assetData = await this.assetHelper.process(data.src, data);
             // @todo make magic content, <img> tag for images and videos and so on...
