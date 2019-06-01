@@ -1,10 +1,11 @@
+import { Logger } from './../helper/logger';
 import { FSJetpack } from 'fs-jetpack/types';
 import { Events } from './../helper/events';
 import { Builder } from './../helper/builder';
 import { Hooks } from './hooks';
 export class Plugin {
-    wyver: PluginFramework;
-    constructor(wyver: PluginFramework) {}
+    wyvr: PluginFramework;
+    constructor(wyvr: PluginFramework) {}
 }
 
 export class PluginFramework {
@@ -13,19 +14,21 @@ export class PluginFramework {
     events: Events;
     fs: PluginFrameworkFS;
     config: PluginFrameworkConfig;
-    constructor(hooks: Hooks, builder: Builder, events: Events, fs: FSJetpack, config: any) {
+    logger: Logger;
+    constructor(hooks: Hooks, builder: Builder, events: Events, fs: FSJetpack, logger: Logger, config: any) {
         this.builder = new PluginFrameworkBuilder(builder);
         this.hooks = hooks;
         this.events = events;
         this.fs = new PluginFrameworkFS(fs);
         this.config = new PluginFrameworkConfig(config);
+        this.logger = logger;
     }
 }
 
 export class PluginFrameworkBuilder {
     constructor(private builder: Builder) {}
-    async compile(source: string, data: any) {
-        return await this.builder.compile(source, data);
+    async compile(data: any) {
+        return await this.builder.compile(data);
     }
 }
 export class PluginFrameworkFS {
@@ -35,9 +38,9 @@ export class PluginFrameworkFS {
         //@todo check if read is in the current project folder not outside, security
         return this.fs.read(filePath);
     }
-    write(filePath: string, data: string) {
+    write(filePath: string, content: string) {
         //@todo check if write is in the current project folder not outside, security
-        return this.fs.write(filePath, data);
+        return this.fs.write(filePath, content);
     }
     getPath(filePath: string) {
         if(filePath.indexOf('../') > -1) {
@@ -52,6 +55,6 @@ export class PluginFrameworkConfig {
 
     }
     get(name: string) {
-        return this.config[name];
+        return this.config.config[name];
     }
 }

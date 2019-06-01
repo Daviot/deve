@@ -189,7 +189,7 @@ export class CLI {
     async start() {
         //load plugins based on the order in the config file
         const plugins = this.config.plugins;
-        const framework = new PluginFramework(this.hooks, this.builder, this.events, this.fs, this.config);
+        const framework = new PluginFramework(this.hooks, this.builder, this.events, this.fs, this.logger, this.config);
         if (plugins) {
             for (var i = 0, len = plugins.length; i < len; i++) {
                 try {
