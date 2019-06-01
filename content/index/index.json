@@ -5,8 +5,11 @@
         "title": "Title Index",
         "description": "Description Index"
     },
-    "body": "<div>INDEX<div>\n<h1>{{head.title}}</h1>\n<aside>[[logo]]</aside>",
+    "body": "<div>INDEX</div>\n<h1>{{head.title}}</h1>\n<aside>[[logo]]</aside>((hero))((hero.src)) (( hero.src ))",
     "snippets": {
         "logo": "logo.hbs"
+    },
+    "assets": {
+        "hero": "heart.jpg"
     }
 }
