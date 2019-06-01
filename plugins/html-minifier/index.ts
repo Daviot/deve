@@ -3,10 +3,17 @@ import { Plugin, PluginFramework } from '../../code/model/plugin';
 import { minify } from 'html-minifier';
 
 export default class HtmlMinifierPlugin extends Plugin {
-    constructor(wyver: PluginFramework) {
-        super(wyver);
-        wyver.hooks.set('builder:generate#after', (source: string)=> {
-            return this.minify(source);
+    constructor(wyvr: PluginFramework) {
+        super(wyvr);
+        const config = wyvr.config.get('html-minifier');
+        wyvr.hooks.set('builder:generate#after', (data: any)=> {
+            if(config.generateRawHtml) {
+                const rawPath = `${data.destination.replace('.html', '')}.raw.html`;
+                wyvr.logger.debug(this, `write raw version to "${rawPath}"`);
+                wyvr.fs.write(rawPath, data.generated);
+            }
+            data.generated = this.minify(data.generated);
+            return data;
         });
     }
 
