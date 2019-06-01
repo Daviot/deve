@@ -1,3 +1,4 @@
+import { AssetHelper } from './../model/AssetHelper';
 import { LogLevel, Logger } from './logger';
 import { Indexer } from './indexer';
 import { Builder } from './builder';
@@ -26,6 +27,7 @@ export class CLI {
     usage: any;
     cliOptions: any[];
     assets: Assets;
+    assetHelper: AssetHelper;
 
     constructor(private fs: FSJetpack, private events: Events, private hooks: Hooks, private logger: Logger, private config: any) {
         const ora = require('ora');
@@ -38,7 +40,8 @@ export class CLI {
         this.c = require('ansi-colors');
         this.usage = require('command-line-usage');
         this.indexer = new Indexer(this.fs);
-        this.assets = new Assets(this.fs, this.hooks);
+        this.assetHelper = new AssetHelper(this.fs, this.logger);
+        this.assets = new Assets(this.fs, this.hooks, this.assetHelper, this.logger);
 
         this.cliOptions = [
             {
@@ -252,6 +255,7 @@ export class CLI {
 
             this.events.sub('builder:build:done', async (data: any) => {
                 this.countDown--;
+                this.logger.debug(this, `file "${data.source}" was built`)
                 if (this.countDown > 0) {
                     this.spinner.text = `${this.countDown + 1} files to process`;
                     this.files.push(data);
@@ -267,7 +271,7 @@ export class CLI {
                 // });
                 this.spinner.start('Building');
                 let files = await this.glob('content/**/*.json');
-                this.logger.debug(this, 'files to build');
+                this.logger.debug(this, 'files to build', files);
             const hookedFiles = await this.hooks.call('builder#before', files);
 
             if (hookedFiles) {
