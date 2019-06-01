@@ -32,6 +32,15 @@ export class AssetHelper {
         }
         return this.file;
     }
+
+    async process(path: string, data:any) {
+        if(!path) {
+            return null;
+        }
+        const helper = this.getHelper(path);
+        this.logger.debug(this, helper.constructor.name)
+        return await helper.process(path, data);
+    }
 }
 
 export interface AssetHelperModule {

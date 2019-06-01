@@ -106,6 +106,7 @@ export class Assets {
                     // get the content to replace
                     const content = await this.replaceContent(matchKey, assetData);
 
+                    // replace the new content with the placeholder
                     source = source.replace(new RegExp(regexMatchPattern, 'gi'), content);
                 });
                 this.logger.debug(this, source);
@@ -143,8 +144,9 @@ export class Assets {
             return '';
         }
         if (typeof data == 'object') {
+            const assetData = await this.assetHelper.process(data.src, data);
             // @todo make magic content, <img> tag for images and videos and so on...
-            return JSON.stringify(data);
+            return JSON.stringify(assetData);
         }
         return data;
     }

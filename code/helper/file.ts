@@ -8,6 +8,7 @@ export class FileHelper implements AssetHelperModule {
     }
 
     async process(filePath: string, options: any): Promise<string> {
+        this.logger.debug(this, filePath, options);
         return filePath;
     }
     async metaData(filePath: string): Promise<any> {
