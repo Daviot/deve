@@ -65,19 +65,18 @@ export class Builder {
         if (data == null) {
             return null;
         }
-        //console.log('build', filePath, data.destination);
         // replace and handle assets
         data = await this.assets.load(data);
 
         // build the file
-        const generated = await this.generate(data);
+        data = await this.generate(data);
 
         // write the json data for debugging
         if (this.options.config.generatePublicJson) {
             this.fs.write(`${data.destination}.json`, data);
         }
-        // write the generated tempalte
-        this.fs.write(data.destination, generated);
+        // write the generated template
+        this.fs.write(data.destination, data.generated);
         const fileBuildEndTime = new Date().getTime();
         data.buildTime = fileBuildEndTime - fileBuildStartTime;
         this.logger.info(this, `"${filePath}" build time ${data.buildTime}`);
@@ -135,9 +134,10 @@ export class Builder {
             console.error(`page "${data.page}" could not be found for "${data.source}"`);
             return data.body;
         }
-        let body = this.fs.read(path);
-        body = await this.compile(body, data);
-        return body;
+        const body = this.fs.read(path);
+        data.generated = body;
+        data = await this.compile(data);
+        return data;
     }
 
     async getData(filePath: any) {
@@ -187,7 +187,8 @@ export class Builder {
             data = hookedData;
         }
         // load the page template
-        let source = this.loadTheme(data);
+        const theme = this.loadTheme(data);
+        data.generated = theme;
 
         // register partials
         if (data.partials) {
@@ -198,24 +199,24 @@ export class Builder {
         }
 
         // check if the file has a page file defined to extend the body
-        data.body = await this.loadPage(data);
+        data = await this.loadPage(data);
 
         // replace the template with the data
-        source = await this.compile(source, data);
+        data = await this.compile(data);
         // compile the templates from the data itself
-        source = await this.compile(source, data);
+        data = await this.compile(data);
 
         // create hook for plugins
-        const hookedSource = await this.hooks.call('builder:generate#after', source);
+        const hookedDataAfter = await this.hooks.call('builder:generate#after', data);
 
-        if (hookedSource) {
-            source = hookedSource;
+        if (hookedDataAfter) {
+            data = hookedDataAfter;
         }
-        return source;
+        return data;
     }
 
-    async compile(source: string, data: any) {
-        let template = this.templateEngine.compile(source);
+    async compile(data: any) {
+        let template = this.templateEngine.compile(data.generated);
         let compiledSource = template(data);
         if (data.snippets) {
             compiledSource = this.snippets.replace(compiledSource, data.snippets, data.source);
@@ -223,6 +224,7 @@ export class Builder {
         if (data.assets) {
             compiledSource = await this.assets.replace(compiledSource, data.assets);
         }
-        return compiledSource;
+        data.generated = compiledSource;
+        return data;
     }
 }
