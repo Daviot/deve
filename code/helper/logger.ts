@@ -4,8 +4,10 @@ export class Logger {
     path: string;
     color: any;
     level: LogLevel;
+    cwd: string;
     constructor(private fs: FSJetpack, id: number) {
-        this.path = `${this.fs.cwd()}/log/${id || 'wyvr'}.log`;
+        this.cwd = this.fs.cwd();
+        this.path = `${this.cwd}/log/${id || 'wyvr'}.log`;
         if (this.fs.exists(this.path)) {
             this.fs.remove(this.path);
         }
@@ -146,7 +148,7 @@ export class Logger {
             if (!message) {
                 return '';
             }
-            return message.trim().replace(this.fs.cwd() + '/', '');
+            return message.trim().replace(this.cwd + '/', '');
         }
     }
 }
