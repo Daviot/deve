@@ -11,7 +11,7 @@ export class ImageHelper implements AssetHelperModule {
     }
 
     async process(imagePath: string, options: any): Promise<string> {
-        this.logger.debug(this, imagePath, options);
+        this.logger.debug(this, imagePath);
         return imagePath;
     }
     async metaData(imagePath: string): Promise<any> {
