@@ -6,7 +6,7 @@ export class Logger {
     level: LogLevel;
     constructor(private fs: FSJetpack, id: number) {
         this.path = `${this.fs.cwd()}/log/${id || 'wyvr'}.log`;
-        if(this.fs.exists(this.path)) {
+        if (this.fs.exists(this.path)) {
             this.fs.remove(this.path);
         }
         this.color = require('ansi-colors');
@@ -17,25 +17,25 @@ export class Logger {
         return this.path;
     }
 
-    setLevel(level: string|number) {
+    setLevel(level: string | number) {
         const levels = LogLevel;
         let logLevel: number = null;
-        if(typeof level == 'string') {
+        if (typeof level == 'string') {
             logLevel = (<any>levels)[level];
         } else {
             logLevel = level;
         }
-        if(levels[logLevel] != null) {
+        if (levels[logLevel] != null) {
             this.level = logLevel;
             this.writeLog(`set log level to "${levels[this.level]}"`);
         }
     }
     validate(level: LogLevel) {
-        if(isNaN(parseInt((<any>level).toString()))) {
+        if (isNaN(parseInt((<any>level).toString()))) {
             const levels = LogLevel;
             level = (<any>levels)[level];
         }
-        if((<number>level) >= this.level) {
+        if (<number>level >= this.level) {
             return true;
         }
         return false;
@@ -45,8 +45,11 @@ export class Logger {
     }
 
     log(level: LogLevel, context: any, ...data: any[]) {
-        if(!this.validate(level)) {
+        if (!this.validate(level)) {
             return;
+        }
+        if(level == LogLevel.debug) {
+            context = this.getStackInfo();
         }
         // console.log(context);
         // console.log(data);
@@ -135,6 +138,17 @@ export class Logger {
         }
     }
     convertObjectToString(data: any) {}
+    getStackInfo() {
+        try {
+            throw Error('');
+        } catch (err) {
+            const message = err.stack.split(' at ').find((stack: string) => stack.indexOf('Error') == -1 && stack.indexOf('Logger') == -1);
+            if(!message) {
+                return '';
+            }
+            return message.trim();
+        }
+    }
 }
 
 export enum LogLevel {
