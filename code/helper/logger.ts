@@ -48,7 +48,7 @@ export class Logger {
         if (!this.validate(level)) {
             return;
         }
-        if(level == LogLevel.debug) {
+        if (level == LogLevel.debug) {
             context = this.getStackInfo();
         }
         // console.log(context);
@@ -143,10 +143,10 @@ export class Logger {
             throw Error('');
         } catch (err) {
             const message = err.stack.split(' at ').find((stack: string) => stack.indexOf('Error') == -1 && stack.indexOf('Logger') == -1);
-            if(!message) {
+            if (!message) {
                 return '';
             }
-            return message.trim();
+            return message.trim().replace(this.fs.cwd() + '/', '');
         }
     }
 }
