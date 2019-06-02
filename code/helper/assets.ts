@@ -4,7 +4,7 @@ import { Hooks } from '../model/hooks';
 import { AssetHelper } from '../model/AssetHelper';
 export class Assets {
     private store: any = {};
-    constructor(private fs: FSJetpack, private hooks: Hooks, private assetHelper: AssetHelper, private logger: Logger) {}
+    constructor(private fs: FSJetpack, private hooks: Hooks, private assetHelper: AssetHelper, private config: any, private logger: Logger) {}
 
     /**
      * Loads all available assets for the given data
@@ -22,11 +22,10 @@ export class Assets {
                         const asset = data.assets[key];
                         let assetData = {
                             src: '',
-                            width: 0,
-                            height: 0,
                             name: key,
                             srcRelative: '',
-                            extension: ''
+                            extension: '',
+                            meta: {}
                         };
                         switch (typeof asset) {
                             case 'object':
@@ -50,6 +49,7 @@ export class Assets {
                                 //@todo get dimensions of image
                                 assetData.src = `${data.baseUrl}/${path}`;
                                 assetData.srcRelative = path;
+                                assetData.meta = metaData;
                                 const ext = path.split('.');
                                 assetData.extension = ext[ext.length - 1].toLowerCase();
 
@@ -67,7 +67,7 @@ export class Assets {
         if (afterHookedData) {
             data = afterHookedData;
         }
-        this.logger.debug(this, `loaded assets for "${data.source}"`, data.assets);
+        this.logger.debug(this, `loaded assets for "${data.source}"`);
         return data;
     }
 
@@ -150,6 +150,9 @@ export class Assets {
                 // default config of the assets
             };
         if (typeof data == 'object') {
+            src = data.src;
+
+            data = this.assetHelper.getData(data);
             const assetData = await this.assetHelper.process(data.src, data);
             // @todo make magic content, <img> tag for images and videos and so on...
             return JSON.stringify(assetData);
