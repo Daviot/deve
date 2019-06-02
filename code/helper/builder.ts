@@ -142,7 +142,7 @@ export class Builder {
 
     async getData(filePath: any) {
         // make a clone of the default options
-        let options = JSON.parse(JSON.stringify(this.options));
+        let options = JSON.parse(JSON.stringify(this.options.page));
         const hookedOptions = await this.hooks.call('builder:get-data#before', options);
         if (hookedOptions) {
             options = hookedOptions;
