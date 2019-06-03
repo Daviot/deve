@@ -40,8 +40,8 @@ export class CLI {
         this.c = require('ansi-colors');
         this.usage = require('command-line-usage');
         this.indexer = new Indexer(this.fs);
-        this.assetHelper = new AssetHelper(this.fs, this.config.assets, this.logger);
-        this.assets = new Assets(this.fs, this.hooks, this.assetHelper, this.config.assets, this.logger);
+        this.assetHelper = new AssetHelper(this.fs, this.config, this.logger);
+        this.assets = new Assets(this.fs, this.hooks, this.assetHelper, this.config, this.logger);
 
         this.cliOptions = [
             {

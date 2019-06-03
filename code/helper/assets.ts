@@ -22,6 +22,7 @@ export class Assets {
                         const asset = data.assets[key];
                         let assetData = {
                             src: '',
+                            path: '',
                             name: key,
                             srcRelative: '',
                             extension: '',
@@ -48,6 +49,7 @@ export class Assets {
                                 //@todo detect if the file is an image, otherwise stop here
                                 //@todo get dimensions of image
                                 assetData.src = `${data.baseUrl}/${path}`;
+                                assetData.path = asset;
                                 assetData.srcRelative = path;
                                 assetData.meta = metaData;
                                 const ext = path.split('.');

@@ -61,7 +61,7 @@ export class AssetHelper {
         }
         const type = this.getType(data.src);
         // load the config of the source
-        const config = this.config[type];
+        const config = this.config.assets[type];
         if (!config) {
             return data;
         }
@@ -76,6 +76,13 @@ export class AssetHelper {
             // enhance data object with the configurations
             patternList.map((pattern:any)=> {
                 data[pattern.name] = this.merge(pattern, clone);
+                let path = ['assets', type];
+                if(type == 'image') {
+                    path.push(`${data[pattern.name].width || '_'}x${data[pattern.name].height || '_'}`);
+                }
+                path.push(pattern.name);
+                data[pattern.name].path = `${path.join('/')}/${data[pattern.name].path}`;
+                data[pattern.name].src = `${this.config.page.baseUrl}/${data[pattern.name].path}`;
             });
         }
         return data;
