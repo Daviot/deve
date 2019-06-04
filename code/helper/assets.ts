@@ -1,7 +1,7 @@
 import { Logger } from './logger';
 import { FSJetpack } from 'fs-jetpack/types';
 import { Hooks } from '../model/hooks';
-import { AssetHelper } from '../model/AssetHelper';
+import { AssetHelper, AssetData } from '../model/AssetHelper';
 export class Assets {
     private store: any = {};
     constructor(private fs: FSJetpack, private hooks: Hooks, private assetHelper: AssetHelper, private config: any, private logger: Logger) {}
@@ -20,14 +20,7 @@ export class Assets {
                 keys
                     .map(async (key) => {
                         const asset = data.assets[key];
-                        let assetData = {
-                            src: '',
-                            path: '',
-                            name: key,
-                            srcRelative: '',
-                            extension: '',
-                            meta: {}
-                        };
+                        let assetData = new AssetData(key);
                         switch (typeof asset) {
                             case 'object':
                                 //@todo handle complex assets
@@ -155,9 +148,19 @@ export class Assets {
             src = data.src;
 
             data = this.assetHelper.getData(data);
-            const assetData = await this.assetHelper.process(data.src, data);
+            const dataBaseProperties = Object.keys(new AssetData());
+            const keys = Object.keys(data).filter((prop)=> dataBaseProperties.indexOf(prop) == -1);
+            // find the default image
+            let defaultImage = data[keys.find((key)=> {
+                return data[key].default == true;
+            })];
+            // use first image config as "default"
+            if(!defaultImage) {
+                defaultImage = data[keys[0]];
+            }
+            const assetData = await this.assetHelper.process(defaultImage);
             // @todo make magic content, <img> tag for images and videos and so on...
-            return JSON.stringify(assetData);
+            return await this.assetHelper.generate(assetData);
         }
         return data;
     }

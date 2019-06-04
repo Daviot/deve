@@ -2,6 +2,7 @@ import { Logger } from './../helper/logger';
 import { FSJetpack } from 'fs-jetpack/types';
 import { ImageHelper } from '../helper/image';
 import { FileHelper } from '../helper/file';
+import { Tracing } from 'trace_events';
 
 export class AssetHelper {
     image: ImageHelper;
@@ -34,13 +35,21 @@ export class AssetHelper {
         }
     }
 
-    async process(path: string, data: any) {
-        if (!path) {
+    async process(data: any) {
+        if (!data) {
             return null;
         }
-        const helper = this.getHelper(path);
+        const helper = this.getHelper(data.src);
         this.logger.debug(this, helper.constructor.name);
-        return await helper.process(path, data);
+        return await helper.process(data);
+    }
+    async generate(data: any) {
+        if (!data) {
+            return null;
+        }
+        const helper = this.getHelper(data.src);
+        this.logger.debug(this, helper.constructor.name);
+        return await helper.generate(data);
     }
 
     getType(path: string): string {
@@ -91,6 +100,22 @@ export class AssetHelper {
 
 export interface AssetHelperModule {
     fs: FSJetpack;
-    process(path: string, options: any): Promise<string>;
+    process(data: any): Promise<any>;
     metaData(path: string): Promise<any>;
+    generate(data: any): Promise<any>;
+}
+
+export class AssetData {
+    src: string = '';
+    path: string = '';
+    name: string = '';
+    srcRelative: string = '';
+    extension: string = '';
+    meta: any = {};
+
+    constructor(name: string = null) {
+        if(name) {
+            this.name = name;
+        }
+    }
 }

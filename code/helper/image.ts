@@ -10,9 +10,9 @@ export class ImageHelper implements AssetHelperModule {
         this.fs = fs;
     }
 
-    async process(imagePath: string, options: any): Promise<string> {
-        this.logger.debug(this, imagePath);
-        return imagePath;
+    async process(data: any): Promise<string> {
+        this.logger.debug(this, data);
+        return data;
     }
     async metaData(imagePath: string): Promise<any> {
         const image = sharp(imagePath);
@@ -20,5 +20,8 @@ export class ImageHelper implements AssetHelperModule {
         let fileMeta = await this.fs.inspect(imagePath);
 
         return Object.assign(fileMeta, metaData);
+    }
+    async generate(data: any): Promise<any> {
+        return `<img src="${data.src}" />`;
     }
 }
