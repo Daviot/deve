@@ -63,27 +63,34 @@ export class Assets {
             data = afterHookedData;
         }
         this.logger.debug(this, `loaded assets for "${data.source}"`);
+        // map the assets to the data object
+        const assets = data.assets;
+        data.assets = {};
+        assets.map((asset: AssetData)=> {
+            data.assets[asset.name] = this.assetHelper.getData(asset);
+        });
         return data;
     }
 
     get(assets: any, key: string) {
-        if (assets && assets.length > 0) {
-            const asset = assets.find((a: any) => a.name == key);
+        if (assets && assets[key]) {
+            const asset = assets[key];
             return asset;
         }
         return '';
     }
 
-    async replace(source: string, assets: any) {
-        const beforeHookedSource = await this.hooks.call('builder:assets:replace#before', source);
-        if (beforeHookedSource) {
-            source = beforeHookedSource;
+    async replace(data: any) {
+        const beforeHookedData = await this.hooks.call('builder:assets:replace#before', data);
+        if (beforeHookedData) {
+            data = beforeHookedData;
         }
-        if (assets && assets.length > 0) {
-            await Promise.all(assets.map(async (asset: any) => {
-                const assetData = this.get(assets, asset.name);
+        const keys = Object.keys(data.assets);
+        if (data.assets && keys.length > 0) {
+            await Promise.all(keys.map(async (key: any) => {
+                const assetData = data.assets[key];
                 // list all occuring matches inside the source
-                const matches = source.match(new RegExp(`\\(\\(\\s*?(${asset.name}.*?)\\)\\)`, 'gi'));
+                const matches = data.generated.match(new RegExp(`\\(\\(\\s*?(${assetData.name}.*?)\\)\\)`, 'gi'));
                 // when asset is not found go to next asset
                 if (!matches) {
                     return;
@@ -91,9 +98,9 @@ export class Assets {
                 this.logger.debug(this, `asset "${assetData.name}" found`, matches);
                 // search and replace every match
                 await Promise.all(
-                    matches.map(async (match) => {
+                    matches.map(async (match:any) => {
                         // prepare the match because "((asset))" can not be used as regex
-                        const regexMatchPattern = match.replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+                        const regexMatchPattern = match.replace(/\(/g, '\\(').replace(/\)/g, '\\)').replace(/\./g, '\\.');
                         const matchKey = match
                             .replace(/\(/g, '')
                             .replace(/\)/g, '')
@@ -101,19 +108,20 @@ export class Assets {
 
                         // get the content to replace
                         const content = await this.replaceContent(matchKey, assetData);
+                        console.log(regexMatchPattern, content)
 
                         // replace the new content with the placeholder
-                        source = source.replace(new RegExp(regexMatchPattern, 'gi'), content);
+                        data.generated = data.generated.replace(new RegExp(regexMatchPattern, 'gi'), content);
                     })
                 );
-                this.logger.debug(this, source);
+                this.logger.debug(this, data.generated);
             }));
         }
-        const afterHookedSource = await this.hooks.call('builder:assets:replace#after', source);
-        if (afterHookedSource) {
-            source = afterHookedSource;
+        const afterHookedData = await this.hooks.call('builder:assets:replace#after', data);
+        if (afterHookedData) {
+            data = afterHookedData;
         }
-        return source;
+        return data;
     }
 
     async replaceContent(key: string, asset: any) {
@@ -147,8 +155,8 @@ export class Assets {
         if (typeof data == 'object') {
             src = data.src;
 
-            data = this.assetHelper.getData(data);
-            const dataBaseProperties = Object.keys(new AssetData());
+            const emptyAsset = new AssetData();
+            const dataBaseProperties = Object.keys(emptyAsset);
             const keys = Object.keys(data).filter((prop)=> dataBaseProperties.indexOf(prop) == -1);
             // find the default image
             let defaultImage = data[keys.find((key)=> {
@@ -156,7 +164,13 @@ export class Assets {
             })];
             // use first image config as "default"
             if(!defaultImage) {
-                defaultImage = data[keys[0]];
+                // when the current object also contains other options use this as default
+                if(typeof data[keys[0]] == 'object' && Object.keys(data[keys[0]]).indexOf('src') > -1) {
+                    defaultImage = data[keys[0]];
+                } else {
+                    // otherwise will the current data be the "defaultImage"
+                    defaultImage = data;
+                }
             }
             const assetData = await this.assetHelper.process(defaultImage);
             // @todo make magic content, <img> tag for images and videos and so on...

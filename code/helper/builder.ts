@@ -217,14 +217,14 @@ export class Builder {
 
     async compile(data: any) {
         let template = this.templateEngine.compile(data.generated);
-        let compiledSource = template(data);
+        const compiledSource = template(data);
+        data.generated = compiledSource;
         if (data.snippets) {
-            compiledSource = this.snippets.replace(compiledSource, data.snippets, data.source);
+            data.generated = this.snippets.replace(data.generated, data.snippets, data.source);
         }
         if (data.assets) {
-            compiledSource = await this.assets.replace(compiledSource, data.assets);
+            data = await this.assets.replace(data);
         }
-        data.generated = compiledSource;
         return data;
     }
 }
