@@ -71,9 +71,11 @@ export class Assets {
         // map the assets to the data object
         const assets = data.assets;
         data.assets = {};
-        assets.map((asset: AssetData)=> {
-            data.assets[asset.name] = this.assetHelper.getData(asset);
-        });
+        if(assets != null) {
+            assets.map((asset: AssetData)=> {
+                data.assets[asset.name] = this.assetHelper.getData(asset);
+            });
+        }
         return data;
     }
 
