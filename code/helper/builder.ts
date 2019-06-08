@@ -46,6 +46,8 @@ export class Builder {
     prepare() {
         this.events.pub('prepare:start');
         this.events.pub('prepare:complete');
+        // clear the output for the build
+        this.fs.remove('public');
     }
 
     async build(filePath: string) {
