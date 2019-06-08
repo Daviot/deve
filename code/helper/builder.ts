@@ -129,7 +129,7 @@ export class Builder {
 
         // when no data is set return default
         if (data.page == null) {
-            return data.body;
+            return data;
         }
         const path = this.fs.path(`${this.path.dir(data.source)}/${data.page}`);
         if (!this.fs.exists(path)) {
