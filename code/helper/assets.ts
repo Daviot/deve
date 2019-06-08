@@ -2,9 +2,14 @@ import { Logger } from './logger';
 import { FSJetpack } from 'fs-jetpack/types';
 import { Hooks } from '../model/hooks';
 import { AssetHelper, AssetData } from '../model/AssetHelper';
+import { Events } from './events';
 export class Assets {
     private store: any = {};
-    constructor(private fs: FSJetpack, private hooks: Hooks, private assetHelper: AssetHelper, private config: any, private logger: Logger) {}
+    constructor(private fs: FSJetpack, private hooks: Hooks, private events: Events, private assetHelper: AssetHelper, private config: any, private logger: Logger) {
+        this.events.sub('builder:build:done', async (data: any) => {
+            await this.assetHelper.process();
+        });
+    }
 
     /**
      * Loads all available assets for the given data
@@ -108,13 +113,12 @@ export class Assets {
 
                         // get the content to replace
                         const content = await this.replaceContent(matchKey, assetData);
-                        console.log(regexMatchPattern, content)
+                        this.logger.debug(regexMatchPattern, content)
 
                         // replace the new content with the placeholder
                         data.generated = data.generated.replace(new RegExp(regexMatchPattern, 'gi'), content);
                     })
                 );
-                this.logger.debug(this, data.generated);
             }));
         }
         const afterHookedData = await this.hooks.call('builder:assets:replace#after', data);
@@ -172,7 +176,7 @@ export class Assets {
                     defaultImage = data;
                 }
             }
-            const assetData = await this.assetHelper.process(defaultImage);
+            const assetData = await this.assetHelper.queue(defaultImage);
             // @todo make magic content, <img> tag for images and videos and so on...
             return await this.assetHelper.generate(assetData);
         }

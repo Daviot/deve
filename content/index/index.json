@@ -5,11 +5,15 @@
         "title": "Title Index",
         "description": "Description Index"
     },
-    "body": "<div>INDEX</div>\n<h1>{{head.title}}</h1>\n<aside>[[logo]]</aside>((hero))((hero.src)) (( hero.src ))",
+    "body": "<div>INDEX</div>\n<h1>{{head.title}}</h1>\n<aside>[[logo]]</aside><main>\n\n<asset>((hero))</asset><asset>((hero.thumbnail))</asset>\n\n</main><aside>{{assets.hero.src}} {{ assets.hero.src }}</aside> <secton>name {{assets.hero.name}}\nthumbnailw {{assets.hero.thumbnail.src}}\nthumnail {{assets.hero.thumbnail.src}}</section>\n\n<secton>@todo name {{assets.complex.name}}\nsrc {{assets.complex.src}}\npreview {{assets.complex.preview.src}}\nthumnail ((complex.thumbnail))</section>",
     "snippets": {
         "logo": "logo.hbs"
     },
     "assets": {
-        "hero": "heart.jpg"
+        "hero": "heart.jpg",
+        "complex": {
+            "name": "Complex Image Structure",
+            "src": "heart.jpg"
+        }
     }
 }

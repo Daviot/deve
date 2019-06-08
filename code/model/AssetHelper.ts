@@ -9,6 +9,7 @@ export class AssetHelper {
     file: FileHelper;
     minimatch: any;
     merge = require('deepmerge');
+    assetQueue: any[] = [];
 
     constructor(fs: FSJetpack, private config: any, private logger: Logger) {
         this.image = new ImageHelper(fs, this.logger);
@@ -35,13 +36,23 @@ export class AssetHelper {
         }
     }
 
-    async process(data: any) {
+    async process() {
+        // handle only valid assets with path attribute
+        const queue = this.assetQueue.filter((asset)=> asset && asset.path && asset.path != '');
+
+        const result = await Promise.all(queue.map(async (asset)=> {
+            const helper = this.getHelper(asset.path);
+            const result = await helper.process(asset);
+            return result;
+        }));
+    }
+
+    async queue(data: any) {
         if (!data) {
             return null;
         }
-        const helper = this.getHelper(data.src);
-        this.logger.debug(this, helper.constructor.name);
-        return await helper.process(data);
+        this.assetQueue.push(data);
+        return data;
     }
     async generate(data: any) {
         if (!data) {
@@ -90,7 +101,7 @@ export class AssetHelper {
                     path.push(`${data[pattern.name].width || '_'}x${data[pattern.name].height || '_'}`);
                 }
                 path.push(pattern.name);
-                data[pattern.name].path = `${path.join('/')}/${data[pattern.name].path}`;
+                data[pattern.name].path = `public/${path.join('/')}/${data[pattern.name].path}`;
                 data[pattern.name].src = `${this.config.page.baseUrl}/${data[pattern.name].path}`;
             });
         }

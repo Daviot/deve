@@ -7,9 +7,10 @@ export class FileHelper implements AssetHelperModule {
         this.fs = fs;
     }
 
-    async process(data: any): Promise<any> {
-        this.logger.debug(this, data);
-        return data;
+    async process(asset: any): Promise<any> {
+        this.fs.copy(asset.srcRelative, asset.path);
+        this.logger.info(this, `move asset "${asset.srcRelative}" to "${asset.path}"`)
+        return asset;
     }
     async metaData(filePath: string): Promise<any> {
        return this.fs.inspect(filePath);
