@@ -13,12 +13,14 @@ import { Snippets } from './snippets';
 import { Hooks } from '../model/hooks';
 import { PluginFramework } from '../model/plugin';
 import { Assets } from './assets';
+import { Server } from './server';
 
 export class CLI {
     spinner: any; // ora spinner
     glob: any;
     configArgs: CliStartupConfiguration;
     builder: Builder;
+    server: Server;
     c: any;
     indexer: Indexer;
 
@@ -63,6 +65,12 @@ export class CLI {
                 description: 'Recreates the assets, themes, partials and snippets index for the watch command.'
             },
             {
+                name: 'server',
+                alias: 's',
+                type: Boolean,
+                description: 'Start the server to access the api for editing files and assets'
+            },
+            {
                 name: 'env',
                 type: String,
                 typeLabel: '{underline production|development}',
@@ -84,6 +92,7 @@ export class CLI {
         const snippets = new Snippets(this.fs);
         snippets.load();
         this.builder = new Builder(templateEngine, this.fs, partials, snippets, this.events, this.hooks, this.assets, this.logger, this.config);
+        this.server = new Server(templateEngine, this.fs, partials, snippets, this.events, this.hooks, this.assets, this.logger, this.config);
     }
 
     loadArguments(): CliStartupConfiguration {
@@ -122,9 +131,12 @@ export class CLI {
         this.logger.setLevel(this.config.config.log);
 
         // fallback when nothing is active start build
-        if (!config.useStartupBuild && !config.useWatcher && !config.useIndexer) {
+        if (!config.useStartupBuild && !config.useWatcher && !config.useIndexer && !config.startServer) {
             config.useStartupBuild = true;
             this.logger.debug(this, 'force startup build');
+        }
+        if(config.startServer) {
+            config.useStartupBuild = false;
         }
         this.logger.debug(this, 'cli arguments', args);
         this.logger.debug(this, 'startup arguments', config);
@@ -204,6 +216,9 @@ export class CLI {
 
         if (this.configArgs.useIndexer) {
             this.events.pub('indexer:start');
+        }
+        if (this.configArgs.startServer) {
+            this.events.pub('server:start');
         }
         if (this.configArgs.useStartupBuild) {
             this.events.pub('build:start');
@@ -312,5 +327,14 @@ export class CLI {
             await this.indexer.generateIndexesOfFile(filePath, this.builder);
         });
         this.spinner.succeed('Indexing complete');
+    }
+
+    async startServer(ignore: string[], callback: Function) {
+        if (this.configArgs.startServer && callback && typeof callback == 'function') {
+            this.spinner.start('Starting Server');
+            this.server.start(() => {
+                this.spinner.succeed('Server started');
+            });
+        }
     }
 }

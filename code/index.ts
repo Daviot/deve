@@ -83,6 +83,12 @@ events.sub('indexer:start', async () => {
     await cli.startIndexer();
 });
 
+events.sub('server:start', async ()=> {
+    await cli.startServer(ignore, async (builder: Builder, filePath: string) => {
+        await builder.build(filePath);
+    });
+});
+
 //console.log('configArgs', configArgs)
 if (configArgs == null) {
     logger.error('wyvr', 'no config arguments available');

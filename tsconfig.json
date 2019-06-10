@@ -7,11 +7,20 @@
         "sourceMap": true,
         "moduleResolution": "node",
         "experimentalDecorators": true,
-        "outDir": "bin"
+        "outDir": "bin",
+        "lib": [
+            "dom",
+            "es2015",
+            "es2018.promise"
+        ]
     },
     "files": [
         "code/index.ts"
     ],
-    "include": ["**/*.ts"],
-    "exclude": ["node_modules"]
+    "include": [
+        "**/*.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
 }

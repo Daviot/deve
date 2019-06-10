@@ -2,6 +2,7 @@ export class CliStartupConfiguration {
     useWatcher: boolean = false;
     useStartupBuild: boolean = false;
     useIndexer: boolean = false;
+    startServer: boolean = false;
     environment:string = null;
     showHelp: boolean = true;
 
@@ -15,6 +16,7 @@ export class CliStartupConfiguration {
         this.useWatcher = args.hasOwnProperty('watch');
         this.useStartupBuild = args.hasOwnProperty('build');
         this.useIndexer = args.hasOwnProperty('indexer');
+        this.startServer = args.hasOwnProperty('server');
         this.showHelp = args.hasOwnProperty('help');
     }
 }
