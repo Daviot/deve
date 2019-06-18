@@ -7,6 +7,7 @@ import { Events } from './events';
 import { Hooks } from '../model/hooks';
 import { Assets } from './assets';
 import { defaultCoreCipherList } from 'constants';
+import { AuthController } from './server/auth';
 
 export class Server {
     template: string = '';
@@ -19,6 +20,8 @@ export class Server {
     app: any; // Express
     jwt: any = require('jsonwebtoken');
     bcrypt: any = require('bcrypt');
+    c: any;
+    spinner: any;
     private key: any;
 
     constructor(
@@ -33,9 +36,11 @@ export class Server {
         private options: any
     ) {
         this.path = new Path();
+        this.c = require('ansi-colors');
     }
 
     start(callback: Function) {
+        this.logger.info(this, 'Starting Server');
         const express = require('express');
         try {
             this.key = JSON.parse(this.fs.read('config/key.json'));
@@ -43,8 +48,26 @@ export class Server {
             this.logger.error(this, "key for jwt authentication couln't be found", e);
         }
 
+        const ora = require('ora');
+        this.spinner = ora({
+            color: 'red'
+        });
+
         this.app = express();
         this.app.use(require('body-parser').json());
+        // logger
+        this.app.use((req: any, res: any, next: Function) => {
+            this.spinner.start(`${this.c.dim(req.method)} ${req.originalUrl}`);
+            res.on('finish', () => {
+                this.spinner.succeed(`${this.c.dim(req.method)} ${req.originalUrl}`);
+            });
+            this.logger.info(this, `request url "${req.originalUrl}" method "${req.method}"`);
+            next();
+        });
+        this.app.use((err: any, req: any, res: any, next: Function) => {
+            this.logger.error(this, err.stack);
+            res.status(500).send('An error occured');
+        });
         this.app.use((req: any, res: any, next: Function) => {
             try {
                 const token = req.headers.authorization.split(' ')[1];
@@ -61,74 +84,15 @@ export class Server {
                 next();
             }
         });
-        this.app.post('/api/auth/login', async (req: any, res: any) => {
-            if (req.body.email && req.body.password) {
-                let user: any = await this.loginAllowed(req.body.email, req.body.password);
-                if (user) {
-                    console.log(user);
-                    // create token to be logged in
-                    const token = this.jwt.sign(user, this.key.token, { expiresIn: '1h' });
-                    // remove the hash of the user object
-                    delete user.hash;
-                    // add the token
-                    user.token = token;
-                    res.status(200).json(user);
-                }
-            }
-            // login failed
-            res.status(403).json();
-        });
+
+        this.app.use('/api/auth', (new AuthController(this.app, this.key, this.fs, this.logger)).router)
 
         this.app.listen('3001' || process.env.PORT, () => {
+            this.logger.info(this, 'Server started');
+
             if (callback && typeof callback == 'function') {
                 callback();
             }
-        });
-    }
-
-    async loginAllowed(email: string, password: string): Promise<any | boolean> {
-        if (!email || !password) {
-            return false;
-        }
-
-        const users = JSON.parse(this.fs.read('config/users.json'));
-
-        const hash = await this.bcrypt.hash(this.getLoginText(email, password, this.key.token), this.key.saltRounds);
-
-        const possibleUser = users.find((user: any) => {
-            const match = user.email === email;
-            return match;
-        });
-
-        if (!possibleUser) {
-            return false;
-        }
-        // when user doesn't have a password, set the value
-        if (possibleUser.hash == null || possibleUser.hash == '') {
-            possibleUser.hash = hash;
-            // save the new password to the config file
-            const prepareUser = users.map((user: any) => {
-                if (user.email == email) {
-                    user.hash = hash;
-                }
-                return user;
-            });
-
-            this.fs.write('config/users.json', prepareUser);
-        }
-        const valid = await this.bcrypt.compare(this.getLoginText(email, password, this.key.token), possibleUser.hash);
-        if (valid) {
-            return possibleUser;
-        }
-
-        return false;
-    }
-
-    getLoginText(email: string, password: string, key: string): string {
-        return JSON.stringify({
-            email: email,
-            password: password,
-            key: key
         });
     }
 }
