@@ -5,7 +5,7 @@ export class ServerController {
     public router = express.Router();
     constructor(private app:any, private options:any, private fs: FSJetpack, private logger:Logger) {
 
-        this.router.post('/status', this.status.bind(this));
+        this.router.get('/status', this.status.bind(this));
 
 
 
