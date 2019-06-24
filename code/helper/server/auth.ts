@@ -5,15 +5,15 @@ export class AuthController {
     jwt: any = require('jsonwebtoken');
     bcrypt: any = require('bcrypt');
     public router = express.Router();
-    constructor(private app:any, private key:any, private server:any, private fs: FSJetpack, private logger:Logger) {
-
+    constructor(private app: any, private key: any, private server: any, private fs: FSJetpack, private logger: Logger) {
         this.router.post('/login', this.login.bind(this));
+        this.router.get('/whoami', this.whoAmI.bind(this));
 
-        this.logger.info(this, `Auth token expires in ${this.server.tokenExpiresIn}`)
+        this.logger.info(this, `Auth token expires in ${this.server.tokenExpiresIn}`);
 
         this.app.use((req: any, res: any, next: Function) => {
             // login will be allways allowed
-            if(req.originalUrl == '/api/auth/login') {
+            if (req.originalUrl == '/api/auth/login') {
                 next();
                 return;
             }
@@ -31,7 +31,6 @@ export class AuthController {
             }
             res.status(403).end('Forbidden');
         });
-
     }
 
     async login(req: any, res: any) {
@@ -97,5 +96,21 @@ export class AuthController {
             password: password,
             key: key
         });
+    }
+
+    async whoAmI(req: any, res: any) {
+        try {
+            const token = req.headers.authorization.split(' ')[1];
+            this.jwt.verify(token, this.key.token, (err: any | null, payload: any) => {
+                const iAm =  {
+                    email: payload.email,
+                    firstName: payload.firstName,
+                    lastName: payload.lastName
+                };
+                res.status(200).json(iAm);
+            });
+        } catch (e) {
+            res.status(400);
+        }
     }
 }
