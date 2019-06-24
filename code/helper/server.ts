@@ -8,6 +8,7 @@ import { Hooks } from '../model/hooks';
 import { Assets } from './assets';
 import { defaultCoreCipherList } from 'constants';
 import { AuthController } from './server/auth';
+import { ServerController } from './server/server';
 
 export class Server {
     template: string = '';
@@ -68,27 +69,15 @@ export class Server {
             this.logger.error(this, err.stack);
             res.status(500).send('An error occured');
         });
-        this.app.use((req: any, res: any, next: Function) => {
-            try {
-                const token = req.headers.authorization.split(' ')[1];
-                this.jwt.verify(token, this.key.token, (err: any | null, payload: any) => {
-                    console.log(payload);
-                    if (payload) {
-                        console.log(payload);
-                        next();
-                    } else {
-                        next();
-                    }
-                });
-            } catch (e) {
-                next();
-            }
-        });
 
+        // register controller
         this.app.use('/api/auth', (new AuthController(this.app, this.key, this.fs, this.logger)).router)
+        this.app.use('/api/server', (new ServerController(this.app, this.options, this.fs, this.logger)).router)
 
-        this.app.listen('3001' || process.env.PORT, () => {
-            this.logger.info(this, 'Server started');
+        const port = 3001 || process.env.PORT;
+        this.app.listen(port || process.env.PORT, () => {
+            this.logger.info(this, `Server started on port ${port}`);
+            this.options.server.startTime = (new Date()).getTime();
 
             if (callback && typeof callback == 'function') {
                 callback();

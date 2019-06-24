@@ -9,21 +9,25 @@ export class AuthController {
 
         this.router.post('/login', this.login.bind(this));
 
-        this.router.use((req: any, res: any, next: Function) => {
+        this.app.use((req: any, res: any, next: Function) => {
+            // login will be allways allowed
+            if(req.originalUrl == '/api/auth/login') {
+                next();
+                return;
+            }
             try {
                 const token = req.headers.authorization.split(' ')[1];
                 this.jwt.verify(token, this.key.token, (err: any | null, payload: any) => {
-                    console.log(payload);
+                    // successfully authenticated
                     if (payload) {
-                        console.log(payload);
                         next();
-                    } else {
-                        next();
+                        return;
                     }
                 });
             } catch (e) {
-                next();
+                this.logger.error(this, e);
             }
+            res.status(403).end('forbidden');
         });
 
     }
@@ -43,7 +47,7 @@ export class AuthController {
             }
         }
         // login failed
-        res.status(403).json();
+        res.status(400).end('Bad Request');
     }
 
     async loginAllowed(email: string, password: string): Promise<any | boolean> {
