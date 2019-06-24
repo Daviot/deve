@@ -65,6 +65,13 @@ export class Server {
             this.logger.info(this, `request url "${req.originalUrl}" method "${req.method}"`);
             next();
         });
+        // Handle unknown routes
+        this.app.use((req: any, res: any) => {
+            this.logger.warn(this, `Not found ${req.originalUrl}`);
+            res.status(404).send('Not found');
+        });
+
+        // handle server errors
         this.app.use((err: any, req: any, res: any, next: Function) => {
             this.logger.error(this, err.stack);
             res.status(500).send('An error occured');
