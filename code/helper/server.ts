@@ -62,7 +62,7 @@ export class Server {
             res.on('finish', () => {
                 this.spinner.succeed(`${this.c.dim(req.method)} ${req.originalUrl}`);
             });
-            this.logger.info(this, `request url "${req.originalUrl}" method "${req.method}"`);
+            this.logger.info(this, `request url "${req.originalUrl}" method "${req.method}"`, req.body);
             next();
         });
         // Handle unknown routes
