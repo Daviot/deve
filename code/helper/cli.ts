@@ -333,7 +333,7 @@ export class CLI {
         if (this.configArgs.startServer && callback && typeof callback == 'function') {
             this.spinner.start('Starting Server');
             this.server.start(() => {
-                this.spinner.succeed('Server started');
+                this.spinner.succeed(`Server started on port ${this.c.green(this.config.server.port)}`);
             });
         }
     }

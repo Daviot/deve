@@ -5,9 +5,11 @@ export class AuthController {
     jwt: any = require('jsonwebtoken');
     bcrypt: any = require('bcrypt');
     public router = express.Router();
-    constructor(private app:any, private key:any, private fs: FSJetpack, private logger:Logger) {
+    constructor(private app:any, private key:any, private server:any, private fs: FSJetpack, private logger:Logger) {
 
         this.router.post('/login', this.login.bind(this));
+
+        this.logger.info(this, `Auth token expires in ${this.server.tokenExpiresIn}`)
 
         this.app.use((req: any, res: any, next: Function) => {
             // login will be allways allowed
@@ -38,7 +40,7 @@ export class AuthController {
             if (user) {
                 this.logger.info(this, `user "${user.email}" logged in`);
                 // create token to be logged in
-                const token = this.jwt.sign(user, this.key.token, { expiresIn: '1h' });
+                const token = this.jwt.sign(user, this.key.token, { expiresIn: this.server.tokenExpiresIn });
                 // remove the hash of the user object
                 delete user.hash;
                 // add the token

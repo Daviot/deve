@@ -71,10 +71,10 @@ export class Server {
         });
 
         // register controller
-        this.app.use('/api/auth', (new AuthController(this.app, this.key, this.fs, this.logger)).router)
+        this.app.use('/api/auth', (new AuthController(this.app, this.key, this.options.server, this.fs, this.logger)).router)
         this.app.use('/api/server', (new ServerController(this.app, this.options, this.fs, this.logger)).router)
 
-        const port = 3001 || process.env.PORT;
+        const port = this.options.server.port || process.env.PORT;
         this.app.listen(port || process.env.PORT, () => {
             this.logger.info(this, `Server started on port ${port}`);
             this.options.server.startTime = (new Date()).getTime();
