@@ -65,11 +65,6 @@ export class Server {
             this.logger.info(this, `request url "${req.originalUrl}" method "${req.method}"`, req.body);
             next();
         });
-        // Handle unknown routes
-        this.app.use((req: any, res: any) => {
-            this.logger.warn(this, `Not found ${req.originalUrl}`);
-            res.status(404).send('Not found');
-        });
 
         // handle server errors
         this.app.use((err: any, req: any, res: any, next: Function) => {
@@ -79,7 +74,13 @@ export class Server {
 
         // register controller
         this.app.use('/api/auth', (new AuthController(this.app, this.key, this.options.server, this.fs, this.logger)).router)
-        this.app.use('/api/server', (new ServerController(this.app, this.options, this.fs, this.logger)).router)
+        this.app.use('/api/server', (new ServerController(this.app, this.options, this.fs, this.logger)).router);
+
+        // Handle unknown routes
+        this.app.use((req: any, res: any) => {
+            this.logger.warn(this, `Not found ${req.originalUrl}`);
+            res.status(404).send('Not found');
+        });
 
         const port = this.options.server.port || process.env.PORT;
         this.app.listen(port || process.env.PORT, () => {
