@@ -29,7 +29,7 @@ export class AuthController {
             } catch (e) {
                 this.logger.error(this, e);
             }
-            res.status(403).end('forbidden');
+            res.status(403).end('Forbidden');
         });
 
     }
@@ -46,6 +46,7 @@ export class AuthController {
                 // add the token
                 user.token = token;
                 res.status(200).json(user);
+                return;
             }
         }
         // login failed
