@@ -23,8 +23,6 @@ export class Server {
     app: any; // Express
     jwt: any = require('jsonwebtoken');
     bcrypt: any = require('bcrypt');
-    c: any;
-    spinner: any;
     private key: any;
 
     constructor(
@@ -40,34 +38,24 @@ export class Server {
         private options: any
     ) {
         this.path = new Path();
-        this.c = require('ansi-colors');
     }
 
     start(callback: Function) {
         this.logger.info(this, 'Starting Server');
-        const express = require('express');
+        const express = require('express'),
+            helmet = require('helmet');
         try {
             this.key = JSON.parse(this.fs.read('config/key.json'));
         } catch (e) {
             this.logger.error(this, "key for jwt authentication couln't be found", e);
         }
 
-        const ora = require('ora');
-        this.spinner = ora({
-            color: 'red'
-        });
+
 
         this.app = express();
         this.app.use(require('body-parser').json());
-        // logger
-        this.app.use((req: any, res: any, next: Function) => {
-            this.spinner.start(`${this.c.dim(req.method)} ${req.originalUrl}`);
-            res.on('finish', () => {
-                this.spinner.succeed(`${this.c.dim(req.method)} ${req.originalUrl}`);
-            });
-            this.logger.info(this, `request url "${req.originalUrl}" method "${req.method}"`, req.body);
-            next();
-        });
+        // web security
+        this.app.use(helmet())
 
         // handle server errors
         this.app.use((err: any, req: any, res: any, next: Function) => {
