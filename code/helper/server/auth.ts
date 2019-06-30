@@ -26,9 +26,11 @@ export class AuthController {
                         return;
                     }
                 });
+                return;
             } catch (e) {
                 this.logger.error(this, e);
             }
+            this.logger.error(this, req.originalUrl, 'Auth forbidden');
             res.status(403).end('Forbidden');
         });
     }
