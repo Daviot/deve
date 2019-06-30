@@ -1,3 +1,4 @@
+import { Builder } from './builder';
 import { Logger } from './logger';
 import { Path } from './path';
 import { FSJetpack } from 'fs-jetpack/types';
@@ -9,6 +10,7 @@ import { Assets } from './assets';
 import { defaultCoreCipherList } from 'constants';
 import { AuthController } from './server/auth';
 import { ServerController } from './server/server';
+import { PageController } from './server/page';
 
 export class Server {
     template: string = '';
@@ -28,6 +30,7 @@ export class Server {
     constructor(
         private templateEngine: any,
         private fs: FSJetpack,
+        private builder: Builder,
         private partials: Partials,
         private snippets: Snippets,
         private events: Events,
@@ -73,8 +76,9 @@ export class Server {
         });
 
         // register controller
-        this.app.use('/api/auth', (new AuthController(this.app, this.key, this.options.server, this.fs, this.logger)).router)
-        this.app.use('/api/server', (new ServerController(this.app, this.options, this.fs, this.logger)).router);
+        this.app.use('/api/auth', new AuthController(this.app, this.key, this.options.server, this.fs, this.logger).router);
+        this.app.use('/api/server', new ServerController(this.app, this.options, this.fs, this.logger).router);
+        this.app.use('/api/page', new PageController(this.app, this.options, this.builder, this.fs, this.logger).router);
 
         // Handle unknown routes
         this.app.use((req: any, res: any) => {
@@ -85,7 +89,7 @@ export class Server {
         const port = this.options.server.port || process.env.PORT;
         this.app.listen(port || process.env.PORT, () => {
             this.logger.info(this, `Server started on port ${port}`);
-            this.options.server.startTime = (new Date()).getTime();
+            this.options.server.startTime = new Date().getTime();
 
             if (callback && typeof callback == 'function') {
                 callback();

@@ -1,5 +1,11 @@
 import * as fs from 'fs-jetpack';
+import { promisify } from 'util';
 export class Path {
+    glob: any;
+
+    constructor() {
+        this.glob = promisify(require('glob'));
+    }
     dir(path: string): string {
         const exists = fs.exists(path);
         switch (exists) {
@@ -16,7 +22,31 @@ export class Path {
         }
     }
 
-    toSlug(filePath:string) {
+    searchFile(path:string):string {
+        path = `content${path}`;
+        let foundPath = null;
+        // check if the path exists
+        if (fs.exists(path)) {
+            foundPath = path;
+        }
+        // try to search json
+        if (!foundPath) {
+            let filePath = path + '.json';
+            if (fs.exists(filePath) == 'file') {
+                foundPath = filePath;
+            }
+        }
+        // try to search index.json inside folder
+        if (!foundPath) {
+            let filePath = path + '/index.json';
+            if (fs.exists(filePath) == 'file') {
+                foundPath = filePath;
+            }
+        }
+        return foundPath;
+    }
+
+    toSlug(filePath:string): string {
         let slug = filePath.replace(/\.json$/gi, '');
         slug = slug.replace(/^content\//gi, '/');
         return slug;
@@ -36,5 +66,10 @@ export class Path {
             return filePath;
         }
         return path;
+    }
+
+    async getAllContentFiles(): Promise<string[]> {
+        let files = await this.glob('content/**/*.json');
+        return files;
     }
 }

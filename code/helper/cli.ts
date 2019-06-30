@@ -1,3 +1,4 @@
+import { Path } from './path';
 import { AssetHelper } from './../model/AssetHelper';
 import { LogLevel, Logger } from './logger';
 import { Indexer } from './indexer';
@@ -17,7 +18,6 @@ import { Server } from './server';
 
 export class CLI {
     spinner: any; // ora spinner
-    glob: any;
     configArgs: CliStartupConfiguration;
     builder: Builder;
     server: Server;
@@ -30,6 +30,7 @@ export class CLI {
     cliOptions: any[];
     assets: Assets;
     assetHelper: AssetHelper;
+    path: Path;
 
     constructor(private fs: FSJetpack, private events: Events, private hooks: Hooks, private logger: Logger, private config: any) {
         const ora = require('ora');
@@ -37,13 +38,13 @@ export class CLI {
             color: 'red'
         });
         const { promisify } = require('util');
-        this.glob = promisify(require('glob'));
 
         this.c = require('ansi-colors');
         this.usage = require('command-line-usage');
         this.indexer = new Indexer(this.fs);
         this.assetHelper = new AssetHelper(this.fs, this.config, this.logger);
         this.assets = new Assets(this.fs, this.hooks, this.events, this.assetHelper, this.config, this.logger);
+        this.path = new Path();
 
         this.cliOptions = [
             {
@@ -92,7 +93,7 @@ export class CLI {
         const snippets = new Snippets(this.fs);
         snippets.load();
         this.builder = new Builder(templateEngine, this.fs, partials, snippets, this.events, this.hooks, this.assets, this.logger, this.config);
-        this.server = new Server(templateEngine, this.fs, partials, snippets, this.events, this.hooks, this.assets, this.logger, this.config);
+        this.server = new Server(templateEngine, this.fs, this.builder, partials, snippets, this.events, this.hooks, this.assets, this.logger, this.config);
     }
 
     loadArguments(): CliStartupConfiguration {
@@ -285,7 +286,7 @@ export class CLI {
                 //     this.spinner.text = `Building ${proc.percent}% ${this.c.dim(`${proc.current}/${proc.amount}`)}`;
                 // });
                 this.spinner.start('Building');
-                let files = await this.glob('content/**/*.json');
+                let files = await this.path.getAllContentFiles();
                 this.logger.debug(this, 'files to build', files);
             const hookedFiles = await this.hooks.call('builder#before', files);
 
@@ -316,7 +317,7 @@ export class CLI {
 
     async startIndexer() {
         this.spinner.start('Indexing');
-        const files = await this.glob('content/**/*.json');
+        const files = await this.path.getAllContentFiles();
 
         if (files == null || files.length == 0) {
             //spinner.fail('No files to build');
