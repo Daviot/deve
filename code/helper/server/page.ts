@@ -6,21 +6,35 @@ import { Builder } from '../builder';
 export class PageController {
     public router = express.Router();
     path: Path;
+    readonly UNIVERSAL_PATH = '/api/pages';
 
     constructor(private app: any, private options: any, private builder: Builder, private fs: FSJetpack, private logger: Logger) {
         this.path = new Path();
 
-        this.router.get('/*', this.getOneOrAll.bind(this));
+        this.router.post('/*', this.create.bind(this));
+        this.router.get('/*', this.read.bind(this));
+        this.router.put('/*', this.update.bind(this));
+        this.router.delete('/*', this.delete.bind(this));
     }
 
-    async getOneOrAll(req: any, res: any) {
-        if (req.originalUrl == '/api/page') {
-            await this.all(req, res);
+    async create(req: any, res: any) {
+        res.send('Not implemented');
+    }
+    async read(req: any, res: any) {
+        if (req.originalUrl == this.UNIVERSAL_PATH) {
+            await this.readAll(req, res);
         } else {
-            await this.get(req, res);
+            await this.readOne(req, res);
         }
     }
-    async all(req: any, res: any) {
+    async update(req: any, res: any) {
+        res.send('Not implemented');
+    }
+    async delete(req: any, res: any) {
+        res.send('Not implemented');
+    }
+
+    async readAll(req: any, res: any) {
         const files = await this.path.getAllContentFiles();
         const pages: any[] = await Promise.all(
             files.map(async (path: string) => {
@@ -36,7 +50,7 @@ export class PageController {
         res.status(200).json(pages);
     }
 
-    async get(req: any, res: any) {
+    async readOne(req: any, res: any) {
         const path = this.builder.path.searchFile(req.path);
         if (path) {
             const data = await this.getPageData(path);
@@ -55,5 +69,8 @@ export class PageController {
         // print a reduced public path
         data.destination = data.destination.replace(this.fs.cwd() + '/', '');
         return data;
+    }
+    setPageData(path: string, data: any): boolean {
+        return true;
     }
 }
