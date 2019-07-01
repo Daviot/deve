@@ -24,11 +24,15 @@ export class PageController {
         if (req.originalUrl == this.UNIVERSAL_PATH) {
             await this.readAll(req, res);
         } else {
-            await this.readOne(req, res);
+            await this.readSingle(req, res);
         }
     }
     async update(req: any, res: any) {
-        res.send('Not implemented');
+        if (req.originalUrl == this.UNIVERSAL_PATH) {
+            await this.updateBatch(req, res);
+        } else {
+            await this.updateSingle(req, res);
+        }
     }
     async delete(req: any, res: any) {
         res.send('Not implemented');
@@ -50,10 +54,27 @@ export class PageController {
         res.status(200).json(pages);
     }
 
-    async readOne(req: any, res: any) {
+    async readSingle(req: any, res: any) {
         const path = this.builder.path.searchFile(req.path);
         if (path) {
             const data = await this.getPageData(path);
+            res.status(200).json(data);
+            return;
+        }
+        res.status(404).end('Not found');
+    }
+
+    async updateBatch(req: any, res: any) {}
+    async updateSingle(req: any, res: any) {
+        const path = this.builder.path.searchFile(req.path);
+        if (path) {
+            const data = await this.getPageData(path);
+            const keys = Object.keys(req.body);
+            keys.map((key) => {
+                data[key] = req.body[key];
+            });
+            // update the template
+            this.fs.write(path, data);
             res.status(200).json(data);
             return;
         }
