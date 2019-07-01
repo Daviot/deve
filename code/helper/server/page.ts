@@ -28,7 +28,7 @@ export class PageController {
                 if (!data) {
                     return null;
                 }
-                data.api = `api/page/${path}`; // direct link to the item
+                data.api = `api/pages/${path}`; // direct link to the item
                 return data;
             })
         );

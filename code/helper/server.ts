@@ -66,7 +66,7 @@ export class Server {
         // register controller
         this.app.use('/api/auth', new AuthController(this.app, this.key, this.options.server, this.fs, this.logger).router);
         this.app.use('/api/server', new ServerController(this.app, this.options, this.fs, this.logger).router);
-        this.app.use('/api/page', new PageController(this.app, this.options, this.builder, this.fs, this.logger).router);
+        this.app.use('/api/pages', new PageController(this.app, this.options, this.builder, this.fs, this.logger).router);
 
         // Handle unknown routes
         this.app.use((req: any, res: any) => {
