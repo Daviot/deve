@@ -24,9 +24,9 @@ export class AuthController {
             this.spinner.start(`${this.c.dim(req.method)} ${req.originalUrl}`);
             // login will be allways allowed
             if (req.originalUrl == '/api/auth/login') {
-                let message = `${this.c.dim(req.method)} ${req.originalUrl}`;
-                this.logger.info(this, this.c.unstyle(message), req.body);
+                let message = `${this.c.green(req.method)} ${req.originalUrl} ${this.c.cyan(req.body.email)}`;
                 this.spinner.succeed(message);
+                this.logger.info(this, this.c.unstyle(message), req.body);
                 next();
                 return;
             }
@@ -35,9 +35,9 @@ export class AuthController {
                 this.jwt.verify(token, this.key.token, (err: any | null, payload: any) => {
                     // successfully authenticated
                     if (payload) {
-                        let message = `${this.c.dim(req.method)} ${req.originalUrl} ${payload && payload.email ? this.c.dim(payload.email) : ''}`;
-                        this.logger.info(this, this.c.unstyle(message), req.body);
+                        let message = `${this.c.green(req.method)} ${req.originalUrl} ${payload && payload.email ? this.c.cyan(payload.email) : ''} ${req.body ? JSON.stringify(req.body) : ''}`;
                         this.spinner.succeed(message);
+                        this.logger.info(this, this.c.unstyle(message));
                         next();
                         return;
                     }
