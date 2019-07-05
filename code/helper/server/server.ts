@@ -11,7 +11,7 @@ export class ServerController {
 
     }
 
-    async status(req: any, res: any) {
+    async status(req: express.Request, res: express.Response) {
         let status = {
             upTime: (new Date()).getTime() - this.options.server.startTime,
             build: this.options.build

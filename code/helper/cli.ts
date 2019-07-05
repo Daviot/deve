@@ -15,9 +15,10 @@ import { Hooks } from '../model/hooks';
 import { PluginFramework } from '../model/plugin';
 import { Assets } from './assets';
 import { Server } from './server';
+import { Ora } from 'ora';
 
 export class CLI {
-    spinner: any; // ora spinner
+    spinner: Ora; // ora spinner
     configArgs: CliStartupConfiguration;
     builder: Builder;
     server: Server;

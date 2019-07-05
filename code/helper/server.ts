@@ -11,6 +11,7 @@ import { defaultCoreCipherList } from 'constants';
 import { AuthController } from './server/auth';
 import { ServerController } from './server/server';
 import { PageController } from './server/page';
+import express = require('express');
 
 export class Server {
     template: string = '';
@@ -58,7 +59,7 @@ export class Server {
         this.app.use(helmet())
 
         // handle server errors
-        this.app.use((err: any, req: any, res: any, next: Function) => {
+        this.app.use((err: any, req: express.Request, res: express.Response, next: Function) => {
             this.logger.error(this, err.stack);
             res.status(500).send('An error occured');
         });
@@ -69,7 +70,7 @@ export class Server {
         this.app.use('/api/pages', new PageController(this.app, this.options, this.builder, this.fs, this.logger).router);
 
         // Handle unknown routes
-        this.app.use((req: any, res: any) => {
+        this.app.use((req: express.Request, res: express.Response) => {
             this.logger.warn(this, `Not found ${req.originalUrl}`);
             res.status(404).send('Not found');
         });

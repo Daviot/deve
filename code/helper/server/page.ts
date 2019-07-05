@@ -17,28 +17,32 @@ export class PageController {
         this.router.delete('/*', this.delete.bind(this));
     }
 
-    async create(req: any, res: any) {
+    async create(req: express.Request, res: express.Response) {
         res.send('Not implemented');
     }
-    async read(req: any, res: any) {
+    async read(req: express.Request, res: express.Response) {
         if (req.originalUrl == this.UNIVERSAL_PATH) {
             await this.readAll(req, res);
         } else {
             await this.readSingle(req, res);
         }
     }
-    async update(req: any, res: any) {
+    async update(req: express.Request, res: express.Response) {
         if (req.originalUrl == this.UNIVERSAL_PATH) {
             await this.updateBatch(req, res);
         } else {
             await this.updateSingle(req, res);
         }
     }
-    async delete(req: any, res: any) {
-        res.send('Not implemented');
+    async delete(req: express.Request, res: express.Response) {
+        if (req.originalUrl == this.UNIVERSAL_PATH) {
+            await this.deleteBatch(req, res);
+        } else {
+            await this.deleteSingle(req, res);
+        }
     }
 
-    async readAll(req: any, res: any) {
+    async readAll(req: express.Request, res: express.Response) {
         const files = await this.path.getAllContentFiles();
         const pages: any[] = await Promise.all(
             files.map(async (path: string) => {
@@ -54,7 +58,7 @@ export class PageController {
         res.status(200).json(pages);
     }
 
-    async readSingle(req: any, res: any) {
+    async readSingle(req: express.Request, res: express.Response) {
         const path = this.builder.path.searchFile(req.path);
         if (path) {
             const data = await this.getPageData(path);
@@ -64,8 +68,10 @@ export class PageController {
         res.status(404).end('Not found');
     }
 
-    async updateBatch(req: any, res: any) {}
-    async updateSingle(req: any, res: any) {
+    async updateBatch(req: express.Request, res: express.Response) {
+        res.status(404).send('Not implemented')
+    }
+    async updateSingle(req: express.Request, res: express.Response) {
         const path = this.builder.path.searchFile(req.path);
         if (path) {
             const data = await this.getPageData(path);
@@ -77,6 +83,17 @@ export class PageController {
             this.fs.write(path, data);
             res.status(200).json(data);
             return;
+        }
+        res.status(404).end('Not found');
+    }
+
+    async deleteBatch(req: express.Request, res: express.Response){
+        res.status(404).end('Not implemented');
+    }
+    async deleteSingle(req: express.Request, res: express.Response){
+        const path = this.builder.path.searchFile(req.path);
+        if (path) {
+
         }
         res.status(404).end('Not found');
     }

@@ -1,12 +1,12 @@
 import { FSJetpack } from 'fs-jetpack/types';
 import { Logger } from './../logger';
 import express = require('express');
-import ora = require('ora');
+import { Ora } from 'ora';
 export class AuthController {
     jwt: any = require('jsonwebtoken');
     bcrypt: any = require('bcrypt');
     c: any;
-    spinner: any;
+    spinner: Ora;
     public router = express.Router();
     constructor(private app: any, private key: any, private server: any, private fs: FSJetpack, private logger: Logger) {
         this.router.post('/login', this.login.bind(this));
@@ -20,7 +20,7 @@ export class AuthController {
         });
         this.c = require('ansi-colors');
 
-        this.app.use((req: any, res: any, next: Function) => {
+        this.app.use((req: express.Request, res: express.Response, next: Function) => {
             this.spinner.start(`${this.c.dim(req.method)} ${req.originalUrl}`);
             // login will be allways allowed
             if (req.originalUrl == '/api/auth/login') {
@@ -35,7 +35,9 @@ export class AuthController {
                 this.jwt.verify(token, this.key.token, (err: any | null, payload: any) => {
                     // successfully authenticated
                     if (payload) {
-                        let message = `${this.c.green(req.method)} ${req.originalUrl} ${payload && payload.email ? this.c.cyan(payload.email) : ''} ${req.body ? JSON.stringify(req.body) : ''}`;
+                        let message = `${this.c.green(req.method)} ${req.originalUrl} ${payload && payload.email ? this.c.cyan(payload.email) : ''} ${
+                            req.body ? JSON.stringify(req.body) : ''
+                        }`;
                         this.spinner.succeed(message);
                         this.logger.info(this, this.c.unstyle(message));
                         next();
@@ -46,14 +48,14 @@ export class AuthController {
             } catch (e) {
                 this.logger.error(this, e);
             }
-                let message = `${this.c.dim(req.method)} ${req.originalUrl}`;
+            let message = `${this.c.dim(req.method)} ${req.originalUrl}`;
             this.spinner.fail(message);
             this.logger.error(this, req.originalUrl, `Auth forbidden ${this.c.unstlye(message)}`, req.body);
             res.status(403).end('Forbidden');
         });
     }
 
-    async login(req: any, res: any) {
+    async login(req: express.Request, res: express.Response) {
         if (req.body.email && req.body.password) {
             let user: any = await this.loginAllowed(req.body.email, req.body.password);
             if (user) {
@@ -118,7 +120,7 @@ export class AuthController {
         });
     }
 
-    async whoAmI(req: any, res: any) {
+    async whoAmI(req: express.Request, res: express.Response) {
         try {
             const token = req.headers.authorization.split(' ')[1];
             this.jwt.verify(token, this.key.token, (err: any | null, payload: any) => {
