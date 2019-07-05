@@ -93,7 +93,11 @@ export class PageController {
     async deleteSingle(req: express.Request, res: express.Response){
         const path = this.builder.path.searchFile(req.path);
         if (path) {
-
+            const data = await this.getPageData(path);
+            // delete the file physically
+            this.fs.remove(path);
+            // return the content of the page
+            res.status(200).json(data);
         }
         res.status(404).end('Not found');
     }
