@@ -18,7 +18,11 @@ export class PageController {
     }
 
     async create(req: express.Request, res: express.Response) {
-        res.send('Not implemented');
+        if (req.originalUrl == this.UNIVERSAL_PATH) {
+            await this.createBatch(req, res);
+        } else {
+            await this.createSingle(req, res);
+        }
     }
     async read(req: express.Request, res: express.Response) {
         if (req.originalUrl == this.UNIVERSAL_PATH) {
@@ -42,6 +46,28 @@ export class PageController {
         }
     }
 
+    async createBatch(req: express.Request, res: express.Response) {
+        res.status(404).send('Not implemented')
+    }
+    async createSingle(req: express.Request, res: express.Response) {
+        let path = `content${req.path}`;
+        const parts = path.split('/');
+        // when no dot is in the last part of the url then
+        if(parts[parts.length -1].indexOf('.') == -1) {
+            // add json to the end
+            path += '.json';
+        }
+        // create only when the file not already exists
+        const exists = this.builder.path.searchFile(path);
+        if (!exists) {
+            const data = req.body;
+            this.fs.write(path, data);
+            res.status(200).json(data);
+            return;
+        }
+        res.status(422).end('Override not allowed');
+    }
+
     async readAll(req: express.Request, res: express.Response) {
         const files = await this.path.getAllContentFiles();
         const pages: any[] = await Promise.all(
@@ -57,6 +83,7 @@ export class PageController {
 
         res.status(200).json(pages);
     }
+
 
     async readSingle(req: express.Request, res: express.Response) {
         const path = this.builder.path.searchFile(req.path);

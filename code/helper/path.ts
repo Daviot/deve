@@ -16,13 +16,12 @@ export class Path {
                 return dir;
             case 'dir':
                 return path.replace(`${fs.cwd()}`, '');
-            default:
-                console.error(`path does not exist "${path}"`);
-                return '';
         }
+        console.error(`path does not exist "${path}"`);
+        return '';
     }
 
-    searchFile(path:string):string {
+    searchFile(path: string): string {
         path = `content${path}`;
         let foundPath = null;
         // check if the path exists
@@ -46,7 +45,7 @@ export class Path {
         return foundPath;
     }
 
-    toSlug(filePath:string): string {
+    toSlug(filePath: string): string {
         let slug = filePath.replace(/\.json$/gi, '');
         slug = slug.replace(/^content\//gi, '/');
         return slug;
@@ -60,7 +59,12 @@ export class Path {
         // change file folder to public
         const path = fs.path(`public/${slug}`);
 
-        if (path.split('/').pop().indexOf('.') < 0) {
+        if (
+            path
+                .split('/')
+                .pop()
+                .indexOf('.') < 0
+        ) {
             // append index.html to the slug
             const filePath = fs.path(path, 'index.html');
             return filePath;
