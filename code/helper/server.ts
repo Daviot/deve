@@ -12,6 +12,7 @@ import { AuthController } from './server/auth';
 import { ServerController } from './server/server';
 import { PageController } from './server/page';
 import express = require('express');
+import { ThemesController } from './server/themes';
 
 export class Server {
     template: string = '';
@@ -68,6 +69,7 @@ export class Server {
         this.app.use('/api/auth', new AuthController(this.app, this.key, this.options.server, this.fs, this.logger).router);
         this.app.use('/api/server', new ServerController(this.app, this.options, this.fs, this.logger).router);
         this.app.use('/api/pages', new PageController(this.app, this.options, this.builder, this.fs, this.logger).router);
+        this.app.use('/api/themes', new ThemesController(this.app, this.options, this.builder, this.fs, this.logger).router);
 
         // Handle unknown routes
         this.app.use((req: express.Request, res: express.Response) => {
