@@ -73,7 +73,10 @@ export class Path {
     }
 
     async getAllContentFiles(): Promise<string[]> {
-        let files = await this.glob('content/**/*.json');
+        return await this.getAllFiles('content/**/*.json');
+    }
+    async getAllFiles(path: string): Promise<string[]> {
+        let files = await this.glob(path);
         return files;
     }
 }
