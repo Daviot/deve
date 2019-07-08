@@ -3,12 +3,13 @@ import { FSJetpack } from 'fs-jetpack/types';
 import { Logger } from '../logger';
 import express = require('express');
 import { Builder } from '../builder';
-export class PageController {
+import { BaseController } from './base';
+export class PageController extends BaseController {
     public router = express.Router();
     path: Path;
-    readonly UNIVERSAL_PATH = '/api/pages';
 
     constructor(private app: any, private options: any, private builder: Builder, private fs: FSJetpack, private logger: Logger) {
+        super();
         this.path = new Path();
 
         this.router.post('/*', this.create.bind(this));
@@ -18,28 +19,28 @@ export class PageController {
     }
 
     async create(req: express.Request, res: express.Response) {
-        if (req.originalUrl == this.UNIVERSAL_PATH) {
+        if (this.isUniversalPath(req)) {
             await this.createBatch(req, res);
         } else {
             await this.createSingle(req, res);
         }
     }
     async read(req: express.Request, res: express.Response) {
-        if (req.originalUrl == this.UNIVERSAL_PATH) {
+        if (this.isUniversalPath(req)) {
             await this.readAll(req, res);
         } else {
             await this.readSingle(req, res);
         }
     }
     async update(req: express.Request, res: express.Response) {
-        if (req.originalUrl == this.UNIVERSAL_PATH) {
+        if (this.isUniversalPath(req)) {
             await this.updateBatch(req, res);
         } else {
             await this.updateSingle(req, res);
         }
     }
     async delete(req: express.Request, res: express.Response) {
-        if (req.originalUrl == this.UNIVERSAL_PATH) {
+        if (this.isUniversalPath(req)) {
             await this.deleteBatch(req, res);
         } else {
             await this.deleteSingle(req, res);
@@ -47,13 +48,13 @@ export class PageController {
     }
 
     async createBatch(req: express.Request, res: express.Response) {
-        res.status(404).send('Not implemented')
+        res.status(404).send('Not implemented');
     }
     async createSingle(req: express.Request, res: express.Response) {
         let path = `content${req.path}`;
         const parts = path.split('/');
         // when no dot is in the last part of the url then
-        if(parts[parts.length -1].indexOf('.') == -1) {
+        if (parts[parts.length - 1].indexOf('.') == -1) {
             // add json to the end
             path += '.json';
         }
@@ -70,24 +71,38 @@ export class PageController {
 
     async readAll(req: express.Request, res: express.Response) {
         const files = await this.path.getAllContentFiles();
+        const fields = this.getFields(req);
         const pages: any[] = await Promise.all(
             files.map(async (path: string) => {
+                let page: any = {
+                    api: `api/pages/${path}`
+                };
+
                 const data = await this.getPageData(path);
-                if (!data) {
-                    return null;
+                if (data) {
+                    let foundKeys: string[] = [];
+                    const keys = Object.keys(data);
+                    keys.map((key: string) => {
+                        const field = fields.find((field) => {
+                            return this.minimatch(key, field);
+                        });
+                        if (field) {
+                            page[key] = data[key];
+                            foundKeys.push(key);
+                        }
+                    });
                 }
-                data.api = `api/pages/${path}`; // direct link to the item
-                return data;
+                return page;
             })
         );
 
         res.status(200).json(pages);
     }
 
-
     async readSingle(req: express.Request, res: express.Response) {
         const path = this.builder.path.searchFile(req.path);
         if (path) {
+            const fields = this.getFields(req);
             const data = await this.getPageData(path);
             res.status(200).json(data);
             return;
@@ -96,7 +111,7 @@ export class PageController {
     }
 
     async updateBatch(req: express.Request, res: express.Response) {
-        res.status(404).send('Not implemented')
+        res.status(404).send('Not implemented');
     }
     async updateSingle(req: express.Request, res: express.Response) {
         const path = this.builder.path.searchFile(req.path);
@@ -114,10 +129,10 @@ export class PageController {
         res.status(404).end('Not found');
     }
 
-    async deleteBatch(req: express.Request, res: express.Response){
+    async deleteBatch(req: express.Request, res: express.Response) {
         res.status(404).end('Not implemented');
     }
-    async deleteSingle(req: express.Request, res: express.Response){
+    async deleteSingle(req: express.Request, res: express.Response) {
         const path = this.builder.path.searchFile(req.path);
         if (path) {
             const data = await this.getPageData(path);
