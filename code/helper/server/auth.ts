@@ -21,10 +21,10 @@ export class AuthController {
         this.c = require('ansi-colors');
 
         this.app.use((req: express.Request, res: express.Response, next: Function) => {
-            this.spinner.start(`${this.c.dim(req.method)} ${req.originalUrl}`);
+            this.spinner.start(`${this.c.dim(req.method)} ${req.path} ${this.c.dim(JSON.stringify(req.query))}`);
             // login will be allways allowed
             if (req.originalUrl == '/api/auth/login') {
-                let message = `${this.c.green(req.method)} ${req.originalUrl} ${this.c.cyan(req.body.email)}`;
+                let message = `${this.c.green(req.method)} ${req.path} ${this.c.dim(JSON.stringify(req.query))} ${this.c.cyan(req.body.email)}`;
                 this.spinner.succeed(message);
                 this.logger.info(this, this.c.unstyle(message), req.body);
                 next();
@@ -35,7 +35,7 @@ export class AuthController {
                 this.jwt.verify(token, this.key.token, (err: any | null, payload: any) => {
                     // successfully authenticated
                     if (payload) {
-                        let message = `${this.c.green(req.method)} ${req.originalUrl} ${payload && payload.email ? this.c.cyan(payload.email) : ''} ${
+                        let message = `${this.c.green(req.method)} ${req.path} ${this.c.dim(JSON.stringify(req.query))} ${payload && payload.email ? this.c.cyan(payload.email) : ''} ${
                             req.body ? JSON.stringify(req.body) : ''
                         }`;
                         this.spinner.succeed(message);
@@ -48,7 +48,7 @@ export class AuthController {
             } catch (e) {
                 this.logger.error(this, e);
             }
-            let message = `${this.c.dim(req.method)} ${req.originalUrl}`;
+            let message = `${this.c.dim(req.method)} ${req.path} ${this.c.dim(JSON.stringify(req.query))}`;
             this.spinner.fail(message);
             this.logger.error(this, req.originalUrl, `Auth forbidden ${this.c.unstlye(message)}`, req.body);
             res.status(403).end('Forbidden');
