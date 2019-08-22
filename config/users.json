@@ -1,14 +1,8 @@
 [
   {
-    "email": "P@r1ck",
-    "hash": "$2b$13$JuT6zDMuBAj35bjeRxc0X.i1ioQ9Mi78xONosufaZ40y.j4o4PO9i",
-    "firstName": "Patrick",
-    "lastName": "Studener"
-  },
-  {
     "email": "demo",
-    "hash": "$2b$13$khkKm8chzsrYkMyO/kX92.us/Q5ijanSuedzgRM7AfjSAL4n5Cl2K",
-    "firstName": "leeres",
-    "lastName": "Passwort"
+    "hash": "$2b$13$JuT6zDMuBAj35bjeRxc0X.i1ioQ9Mi78xONosufaZ40y.j4o4PO9i",
+    "firstName": "User",
+    "lastName": "Demo"
   }
 ]
