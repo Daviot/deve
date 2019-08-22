@@ -1,8 +1,0 @@
-{
-    "head": {
-        "title": "Title Slug",
-        "description": "Description Slug 1 "
-    },
-    "slug": "slug/index/slug",
-    "body": "Slug<br>{{head.title}}"
-}
