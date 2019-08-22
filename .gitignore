@@ -3,3 +3,5 @@ public
 bin
 indexes
 log
+.nyc_ouput
+config/users.json
